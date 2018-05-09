@@ -4,29 +4,64 @@
 #define tamx 30
 #define tamy 20
 
+typedef struct map {
+	bool ocupado; // existe alguma "coisa" neste ponto do mapa
+	bool primeiroPonto; // se este é p primeiro ponto do objecto cord "0""0" do objecto
+	struct map *firstpoint; //ponteiro para o primeiro ponto do objecto
+	void *tipo;//ponteiro para as definiçoes do dono em memoria
+	//evento 
+}mappoint;
+
+typedef struct {
+	char nome[20];
+	char bitmap[100];
+	int x;
+	int y;
+	int tipo;
+}navegrande;
+
+typedef struct {
+	char nome[20];
+	char bitmap[100];
+	int x;
+	int y;
+	int tipo;
+}navepequena;
+
+typedef struct {
+	char nome[20];
+	char bitmap[100];
+	int x;
+	int y;
+	int tipo;
+}navemedia;
+
+typedef struct {
+	char nome[20];
+	char bitmap[100];
+	int x;
+	int y;
+	int tipo;
+}navejogadora;
+
 int interfacee(int x, int y,void *pctx);
 
 void main() {
 	int i,e;
 	
-	int **mapa;
-	mapa = (int **)malloc(tamx * sizeof *mapa);
+	mappoint **mapa;
+	mapa = (mappoint **)malloc(tamx * sizeof *mapa);
 	for (i = 0; i < tamx; i++) {
-		mapa[i] = (int *)malloc(tamy * sizeof *mapa[i]);
+		mapa[i] = (mappoint *)malloc(tamy * sizeof *mapa[i]);
 	}
 
 
 
 	for (i = 0;i < tamx;i++) {
 		for (e = 0;e < tamy;e++) {
-			mapa[i][e] = 0;
+			mapa[i][e].ocupado=0;
 		}
 	}
-	mapa[0][0] = 1;
-	mapa[1][0] = 58;
-	mapa[29][19] = 43;
-	mapa[10][10] = 1;
-	mapa[5][19] = 1;
 
 	
 	interfacee(tamx,tamy,mapa);
@@ -34,10 +69,9 @@ void main() {
 
 int interfacee(int x, int y,void *pctx) {
 	
-	int **mapa;
-	mapa = (int **)pctx;
+	mappoint **mapa;
+	mapa = (mappoint **)pctx;
 
-	printf("%d\n", *(*(mapa + 29) + 19));
 	
 	int e, i,t=0;
 	for (e = -2;e<y+1;e++) {
@@ -72,7 +106,7 @@ int interfacee(int x, int y,void *pctx) {
 				t = 1;
 			}
 			if (t==0) {
-				if (mapa[i][e] == 1) {
+				if (mapa[i][e].ocupado == 1) {
 					printf(" * ");
 				}
 				else{
