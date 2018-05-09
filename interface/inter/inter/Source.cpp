@@ -1,5 +1,12 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<Windows.h>
+//#include <io.h>
+//#include <fcntl.h>
+//#include <time.h>
+#include <tchar.h>
+
+
 
 #define tamx 30
 #define tamy 20
@@ -8,7 +15,7 @@ typedef struct map {
 	bool ocupado; // existe alguma "coisa" neste ponto do mapa
 	bool primeiroPonto; // se este é p primeiro ponto do objecto cord "0""0" do objecto
 	struct map *firstpoint; //ponteiro para o primeiro ponto do objecto
-	void *tipo;//ponteiro para as definiçoes do dono em memoria
+	void *tipo;//ponteiro para as definiçoes do tipo em memoria
 	//evento 
 }mappoint;
 
@@ -46,7 +53,7 @@ typedef struct {
 
 int interfacee(int x, int y,void *pctx);
 
-void main() {
+int _tmain() {
 	int i,e;
 	
 	mappoint **mapa;
@@ -65,6 +72,8 @@ void main() {
 
 	
 	interfacee(tamx,tamy,mapa);
+
+	return 0;
 }
 
 int interfacee(int x, int y,void *pctx) {
