@@ -1,9 +1,9 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<Windows.h>
-//#include <io.h>
-//#include <fcntl.h>
-//#include <time.h>
+#include <io.h>
+#include <fcntl.h>
+#include <time.h>
 #include <tchar.h>
 
 
@@ -52,17 +52,29 @@ typedef struct {
 }navejogadora;
 
 int interfacee(int x, int y,void *pctx);
+int crianaves(int numero);
+DWORD WINAPI Naveinimiga(LPVOID lparam);
+
+mappoint mapa[30][20];
+navemedia navemedia1;
 
 int _tmain() {
-	int i,e;
-	
+	int i, e;
+	HANDLE MutexMapa;
+	MutexMapa = CreateMutex(NULL,FALSE,TEXT("MutexMapa"));
+	if (MutexMapa==NULL) {
+		printf("\nErro no mutex mapa\n");
+	}
+	/*
 	mappoint **mapa;
 	mapa = (mappoint **)malloc(tamx * sizeof *mapa);
 	for (i = 0; i < tamx; i++) {
 		mapa[i] = (mappoint *)malloc(tamy * sizeof *mapa[i]);
 	}
-
-
+	*/
+	//crianaves(0);
+	navemedia1.x = 1;
+	navemedia1.y = 1;
 
 	for (i = 0;i < tamx;i++) {
 		for (e = 0;e < tamy;e++) {
@@ -76,12 +88,48 @@ int _tmain() {
 	return 0;
 }
 
+int crianaves(int numero) {
+	int option,i;
+	HANDLE a;
+	printf("\nnumero de naves/threads\n");
+	scanf_s("%d", &option);
+
+	for (i = 0;i<option;i++) {
+		printf("a lançar uma thread\n");
+
+		a=CreateThread(NULL, 0, Naveinimiga, NULL, 0, NULL);
+	}
+	system("pause");
+	system("cls");
+	return 0;
+}
+
+DWORD WINAPI Naveinimiga(LPVOID lparam) {
+	int i, e,ii,ee, x, y,tipo,tipox,tipoy,livrex=0;
+	HANDLE mutex;
+	tipox = navemedia1.x;
+	tipoy = navemedia1.y;
+	
+	mutex = OpenMutex(SYNCHRONIZE, TRUE, TEXT("MutexMapa"));//mutex enquanto procura lugar e cria o objecto nave no mapa
+	for (e = 0;e<tamx;e++) {
+		for (i = 0;i<tamy;i++) {
+			if (mapa[e][i].ocupado == 0) {//pensar nisto de testar se ha espaço suficiente para a nave em questao, agora cama
+				livrex++
+			}
+
+		}
+	}
+	ReleaseMutex(mutex);
+	
+	return 0;
+}
+
 int interfacee(int x, int y,void *pctx) {
 	
-	mappoint **mapa;
-	mapa = (mappoint **)pctx;
+	//mappoint **mapa;
+	//mapa = (mappoint **)pctx;
+	HANDLE mutex;
 
-	
 	int e, i,t=0;
 	for (e = -2;e<y+1;e++) {
 		for (i = -1;i<x+1;i++) {
@@ -115,12 +163,18 @@ int interfacee(int x, int y,void *pctx) {
 				t = 1;
 			}
 			if (t==0) {
+				mutex = OpenMutex(SYNCHRONIZE, TRUE, TEXT("MutexMapa"));
+				if (mutex == NULL) {
+					printf("\nErro a abrir o mutex do mapa!\n\n");
+					return 0;
+				}
 				if (mapa[i][e].ocupado == 1) {
 					printf(" * ");
 				}
 				else{
 					printf("   ");
 				}
+				ReleaseMutex(mutex);
 			}
 		}
 		printf("\n");
