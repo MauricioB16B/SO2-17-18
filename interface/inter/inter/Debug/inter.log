@@ -1,5 +1,4 @@
 ﻿  Source.cpp
 c:\users\mauri\documents\github\so2_17-18\interface\inter\inter\source.cpp(63): warning C4101: 'teste': unreferenced local variable
-c:\users\mauri\documents\github\so2_17-18\interface\inter\inter\source.cpp(107): warning C4101: 'mutex': unreferenced local variable
-c:\users\mauri\documents\github\so2_17-18\interface\inter\inter\source.cpp(105): warning C4101: 'tipo': unreferenced local variable
+c:\users\mauri\documents\github\so2_17-18\interface\inter\inter\source.cpp(104): warning C4101: 'tipo': unreferenced local variable
   inter.vcxproj -> C:\Users\mauri\Documents\GitHub\SO2_17-18\interface\inter\Debug\inter.exe

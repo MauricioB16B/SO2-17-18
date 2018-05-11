@@ -8,8 +8,8 @@
 
 
 
-#define tamx 30
-#define tamy 20
+#define tamx 35
+#define tamy 25
 
 typedef struct map {
 	int teste;
@@ -56,7 +56,7 @@ int interfacee(int x, int y,void *pctx);
 int crianaves(int numero);
 DWORD WINAPI Naveinimiga(LPVOID lparam);
 
-mappoint mapa[30][20];
+mappoint mapa[tamx][tamy];
 navemedia navemedia1;
 
 int _tmain() {
@@ -74,8 +74,8 @@ int _tmain() {
 		}
 	}
 
-	navemedia1.x = 4;
-	navemedia1.y = 4;
+	navemedia1.x = 3;
+	navemedia1.y = 3;
 	crianaves(0);
 
 
@@ -94,27 +94,26 @@ int crianaves(int numero) {
 		printf("a lançar uma thread\n");
 
 		a=CreateThread(NULL, 0, Naveinimiga, NULL, 0, NULL);
-		Sleep(1000);
 	}
-	system("pause");
+	Sleep(1000);
 	system("cls");
 	return 0;
 }
 
 DWORD WINAPI Naveinimiga(LPVOID lparam) {
 	int i, e,ii,ee, x, y,tipo,tipox,tipoy,livrex=0;
-	int livre = 0;
+	int livre = 1;
 	HANDLE mutex;
 	tipox = navemedia1.x;
 	tipoy = navemedia1.y;
 	
-	//mutex = OpenMutex(SYNCHRONIZE, TRUE, TEXT("MutexMapa"));//mutex enquanto procura lugar e cria o objecto nave no mapa
+	mutex = OpenMutex(SYNCHRONIZE, TRUE, TEXT("MutexMapa"));//mutex enquanto procura lugar e cria o objecto nave no mapa
 	for (e = 0;e<tamy;e++) {
 		for (i = 0;i<tamx;i++) {
 			//anda mapa
-			for (ee = e;ee<(e+tipoy);ee++) { 
-				for (ii = i;ii<(i+tipox);ii++) {
-					if (mapa[ii][ee].ocupado==1 && ii>=tamx){
+			for (ee = e-1;ee<(e+tipoy+1);ee++) { 
+				for (ii = i-1;ii<(i+tipox+1);ii++) {
+					if (mapa[ii][ee].ocupado==1 || ii>=tamx || ii == 0){
 						livre = 1;
 					}
 				}
@@ -133,7 +132,7 @@ DWORD WINAPI Naveinimiga(LPVOID lparam) {
 			livre = 0;
 		}
 	}
-	//ReleaseMutex(mutex);
+	ReleaseMutex(mutex);
 	
 	return 0;
 }
