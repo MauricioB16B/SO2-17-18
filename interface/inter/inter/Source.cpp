@@ -17,7 +17,6 @@ typedef struct map {
 	bool primeiroPonto; // se este é p primeiro ponto do objecto cord "0""0" do objecto
 	struct map *firstpoint; //ponteiro para o primeiro ponto do objecto
 	void *tipo;//ponteiro para as definiçoes do tipo em memoria
-	//evento 
 }mappoint;
 
 typedef struct {
@@ -26,7 +25,7 @@ typedef struct {
 	int x;
 	int y;
 	int tipo;
-}navegrande;
+}naveinvagrande;
 
 typedef struct {
 	char nome[20];
@@ -34,7 +33,7 @@ typedef struct {
 	int x;
 	int y;
 	int tipo;
-}navepequena;
+}naveinvapequena;
 
 typedef struct {
 	char nome[20];
@@ -42,7 +41,7 @@ typedef struct {
 	int x;
 	int y;
 	int tipo;
-}navemedia;
+}bomba;
 
 typedef struct {
 	char nome[20];
@@ -52,60 +51,101 @@ typedef struct {
 	int tipo;
 }navejogadora;
 
+typedef struct {
+	char nome[20];
+	char bitmap[100];
+	int x;
+	int y;
+	int tipo;
+}powerup;
+
 int interfacee(int x, int y,void *pctx);
 int crianaves(int numero);
+int definicoes();
 DWORD WINAPI Naveinimiga(LPVOID lparam);
 
 mappoint mapa[tamx][tamy];
-navemedia navemedia1;
+naveinvagrande defnaveinvagrande;
+naveinvapequena defnaveinvapequena;
+bomba defbomba;
+navejogadora defnavejogadora;
+powerup defpowerup;
 
-int _tmain() {
-	int teste[30][30];
+
+int _tmain() {     // main main main main main main main main main main main main main main main main main main main main
 	int i, e;
 	HANDLE MutexMapa;
+
+	definicoes();
+
 	MutexMapa = CreateMutex(NULL,FALSE,TEXT("MutexMapa"));
 	if (MutexMapa==NULL) {
 		printf("\nErro no mutex mapa\n");
 	}
-	
+
 	for (i = 0;i < tamx;i++) {
 		for (e = 0;e < tamy;e++) {
 			mapa[i][e].ocupado=0;
 		}
 	}
 
-	navemedia1.x = 3;
-	navemedia1.y = 3;
 	crianaves(0);
-
-
 	interfacee(tamx,tamy,mapa);
 
 	return 0;
 }
 
 int crianaves(int numero) {
-	int option,i;
+	int option,i,ee;
 	HANDLE a;
+	int familiaid[5] = { 1,2,3,4,5 };
 	printf("\nnumero de naves/threads\n");
 	scanf_s("%d", &option);
 
-	for (i = 0;i<option;i++) {
+	for (i = 0;i<5;i++) {
 		printf("a lançar uma thread\n");
-
-		a=CreateThread(NULL, 0, Naveinimiga, NULL, 0, NULL);
+		for (ee = 0;ee<option;ee++) {
+			a = CreateThread(NULL, 0, Naveinimiga, (LPVOID)&familiaid[i], 0, NULL);
+		}
 	}
 	Sleep(1000);
+	system("pause");
 	system("cls");
 	return 0;
 }
 
 DWORD WINAPI Naveinimiga(LPVOID lparam) {
-	int i, e,ii,ee, x, y,tipo,tipox,tipoy,livrex=0;
+	int i, e,ii,ee, x, y,tipox,tipoy,livrex=0;
 	int livre = 1;
+	int *familia;
 	HANDLE mutex;
-	tipox = navemedia1.x;
-	tipoy = navemedia1.y;
+	familia = (int *)lparam;
+
+	if (*familia == defnaveinvagrande.tipo) {
+		tipox = defnaveinvagrande.x;
+		tipoy = defnaveinvagrande.y;
+		printf("a lancar thread NAVE GRANDE\n");
+	}
+	if (*familia == defnaveinvapequena.tipo) {
+		tipox = defnaveinvapequena.x;
+		tipoy = defnaveinvapequena.y;
+		printf("a lancar thread NAVE PEQUENA\n");
+	}
+	if (*familia == defbomba.tipo) {
+		tipox = defbomba.x;
+		tipoy = defbomba.y;
+		printf("a lancar thread BOMBA\n");
+	}
+	if (*familia == defnavejogadora.tipo) {
+		tipox = defnavejogadora.x;
+		tipoy = defnavejogadora.y;
+		printf("a lancar thread NAVE JOGADORA\n");
+	}
+	if (*familia == defpowerup.tipo) {
+		tipox = defpowerup.x;
+		tipoy = defpowerup.y;
+		printf("a lancar thread POWERUP\n");
+	}
 	
 	mutex = OpenMutex(SYNCHRONIZE, TRUE, TEXT("MutexMapa"));//mutex enquanto procura lugar e cria o objecto nave no mapa
 	for (e = 0;e<tamy;e++) {
@@ -132,7 +172,7 @@ DWORD WINAPI Naveinimiga(LPVOID lparam) {
 			livre = 0;
 		}
 	}
-	ReleaseMutex(mutex);
+	//ReleaseMutex(mutex);
 	
 	return 0;
 }
@@ -192,5 +232,29 @@ int interfacee(int x, int y,void *pctx) {
 		}
 		printf("\n");
 	}
+	return 0;
+}
+
+int definicoes() {
+	defnaveinvagrande.tipo=1;
+	defnaveinvagrande.x=4;
+	defnaveinvagrande.y=4;
+
+	defnaveinvapequena.tipo=2;
+	defnaveinvapequena.x=3;
+	defnaveinvapequena.y=2;
+
+	defbomba.tipo=3;
+	defbomba.x=1;
+	defbomba.y=1;
+
+	defnavejogadora.tipo=4;
+	defnavejogadora.x=4;
+	defnavejogadora.y=2;
+
+	defpowerup.tipo=5;
+	defpowerup.x=2;
+	defpowerup.y=2;
+
 	return 0;
 }
