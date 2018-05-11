@@ -99,16 +99,15 @@ int crianaves(int numero) {
 	int option,i,ee;
 	HANDLE a;
 	int familiaid[5] = { 1,2,3,4,5 };
-	printf("\nnumero de naves/threads\n");
+	printf("\nnumero de naves por tipo\n");
 	scanf_s("%d", &option);
 
 	for (i = 0;i<5;i++) {
-		printf("a lançar uma thread\n");
+		printf("a lancar uma thread\n");
 		for (ee = 0;ee<option;ee++) {
 			a = CreateThread(NULL, 0, Naveinimiga, (LPVOID)&familiaid[i], 0, NULL);
 		}
 	}
-	Sleep(1000);
 	system("pause");
 	system("cls");
 	return 0;
@@ -120,6 +119,9 @@ DWORD WINAPI Naveinimiga(LPVOID lparam) {
 	int *familia;
 	HANDLE mutex;
 	familia = (int *)lparam;
+
+
+	mutex = OpenMutex(SYNCHRONIZE, FALSE, TEXT("MutexMapa"));
 
 	if (*familia == defnaveinvagrande.tipo) {
 		tipox = defnaveinvagrande.x;
@@ -147,7 +149,7 @@ DWORD WINAPI Naveinimiga(LPVOID lparam) {
 		printf("a lancar thread POWERUP\n");
 	}
 	
-	mutex = OpenMutex(SYNCHRONIZE, TRUE, TEXT("MutexMapa"));//mutex enquanto procura lugar e cria o objecto nave no mapa
+	WaitForSingleObject(mutex, INFINITE);
 	for (e = 0;e<tamy;e++) {
 		for (i = 0;i<tamx;i++) {
 			//anda mapa
@@ -172,7 +174,7 @@ DWORD WINAPI Naveinimiga(LPVOID lparam) {
 			livre = 0;
 		}
 	}
-	//ReleaseMutex(mutex);
+	ReleaseMutex(mutex);
 	
 	return 0;
 }
