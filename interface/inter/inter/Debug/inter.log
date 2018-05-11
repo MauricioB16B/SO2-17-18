@@ -1,4 +1,5 @@
 ﻿  Source.cpp
-c:\users\mauri\documents\github\so2_17-18\interface\inter\inter\source.cpp(13): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
-c:\users\mauri\documents\github\so2_17-18\interface\inter\inter\source.cpp(13): error C2365: 'printf': redefinition; previous definition was 'function'
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(944): note: see declaration of 'printf'
+c:\users\mauri\documents\github\so2_17-18\interface\inter\inter\source.cpp(63): warning C4101: 'teste': unreferenced local variable
+c:\users\mauri\documents\github\so2_17-18\interface\inter\inter\source.cpp(107): warning C4101: 'mutex': unreferenced local variable
+c:\users\mauri\documents\github\so2_17-18\interface\inter\inter\source.cpp(105): warning C4101: 'tipo': unreferenced local variable
+  inter.vcxproj -> C:\Users\mauri\Documents\GitHub\SO2_17-18\interface\inter\Debug\inter.exe

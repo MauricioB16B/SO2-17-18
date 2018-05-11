@@ -12,6 +12,7 @@
 #define tamy 20
 
 typedef struct map {
+	int teste;
 	bool ocupado; // existe alguma "coisa" neste ponto do mapa
 	bool primeiroPonto; // se este é p primeiro ponto do objecto cord "0""0" do objecto
 	struct map *firstpoint; //ponteiro para o primeiro ponto do objecto
@@ -59,6 +60,7 @@ mappoint mapa[30][20];
 navemedia navemedia1;
 
 int _tmain() {
+	int teste[30][30];
 	int i, e;
 	HANDLE MutexMapa;
 	MutexMapa = CreateMutex(NULL,FALSE,TEXT("MutexMapa"));
@@ -66,17 +68,17 @@ int _tmain() {
 		printf("\nErro no mutex mapa\n");
 	}
 	
-	//crianaves(0);
-	navemedia1.x = 1;
-	navemedia1.y = 1;
-
 	for (i = 0;i < tamx;i++) {
-	0	for (e = 0;e < tamy;e++) {
+		for (e = 0;e < tamy;e++) {
 			mapa[i][e].ocupado=0;
 		}
 	}
 
-	
+	navemedia1.x = 4;
+	navemedia1.y = 4;
+	crianaves(0);
+
+
 	interfacee(tamx,tamy,mapa);
 
 	return 0;
@@ -92,6 +94,7 @@ int crianaves(int numero) {
 		printf("a lançar uma thread\n");
 
 		a=CreateThread(NULL, 0, Naveinimiga, NULL, 0, NULL);
+		Sleep(1000);
 	}
 	system("pause");
 	system("cls");
@@ -100,20 +103,37 @@ int crianaves(int numero) {
 
 DWORD WINAPI Naveinimiga(LPVOID lparam) {
 	int i, e,ii,ee, x, y,tipo,tipox,tipoy,livrex=0;
+	int livre = 0;
 	HANDLE mutex;
 	tipox = navemedia1.x;
 	tipoy = navemedia1.y;
 	
-	mutex = OpenMutex(SYNCHRONIZE, TRUE, TEXT("MutexMapa"));//mutex enquanto procura lugar e cria o objecto nave no mapa
-	for (e = 0;e<tamx;e++) {
-		for (i = 0;i<tamy;i++) {
-			if (mapa[e][i].ocupado == 0) {//pensar nisto de testar se ha espaço suficiente para a nave em questao, agora cama
-				livrex++
+	//mutex = OpenMutex(SYNCHRONIZE, TRUE, TEXT("MutexMapa"));//mutex enquanto procura lugar e cria o objecto nave no mapa
+	for (e = 0;e<tamy;e++) {
+		for (i = 0;i<tamx;i++) {
+			//anda mapa
+			for (ee = e;ee<(e+tipoy);ee++) { 
+				for (ii = i;ii<(i+tipox);ii++) {
+					if (mapa[ii][ee].ocupado==1 && ii>=tamx){
+						livre = 1;
+					}
+				}
 			}
-
+			if (livre==0) {
+				x = e;
+				y = i;
+				for (ee = e;ee<(e+tipoy);ee++) {
+					for (ii = i;ii<(i+tipox);ii++) {
+						mapa[ii][ee].ocupado = 1;
+					}
+				}
+				i = tamx + 1;
+				e = tamy + 1;
+			}
+			livre = 0;
 		}
 	}
-	ReleaseMutex(mutex);
+	//ReleaseMutex(mutex);
 	
 	return 0;
 }
