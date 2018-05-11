@@ -65,19 +65,13 @@ int _tmain() {
 	if (MutexMapa==NULL) {
 		printf("\nErro no mutex mapa\n");
 	}
-	/*
-	mappoint **mapa;
-	mapa = (mappoint **)malloc(tamx * sizeof *mapa);
-	for (i = 0; i < tamx; i++) {
-		mapa[i] = (mappoint *)malloc(tamy * sizeof *mapa[i]);
-	}
-	*/
+	
 	//crianaves(0);
 	navemedia1.x = 1;
 	navemedia1.y = 1;
 
 	for (i = 0;i < tamx;i++) {
-		for (e = 0;e < tamy;e++) {
+	0	for (e = 0;e < tamy;e++) {
 			mapa[i][e].ocupado=0;
 		}
 	}
