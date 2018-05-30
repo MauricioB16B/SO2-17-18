@@ -67,6 +67,7 @@ typedef struct {
 int interfacee(int x, int y,void *pctx);
 int crianaves(int numero);
 int definicoes();
+
 DWORD WINAPI Naveinimiga(LPVOID lparam);
 DWORD WINAPI MotorJogo(LPVOID lparam);
 
@@ -189,7 +190,11 @@ int interfacee(int x, int y,void *pctx) {
 	//mappoint **mapa;
 	//mapa = (mappoint **)pctx;
 	HANDLE mutex;
-
+	mutex = OpenMutex(SYNCHRONIZE, FALSE, TEXT("MutexMapa"));
+	if (mutex == NULL) {
+		printf("\nErro a abrir o mutex do mapa!\n\n");
+		return 0;
+	}
 	int e, i,t=0;
 	for (e = -2;e<y+1;e++) {
 		for (i = -1;i<x+1;i++) {
@@ -223,11 +228,7 @@ int interfacee(int x, int y,void *pctx) {
 				t = 1;
 			}
 			if (t==0) {
-				mutex = OpenMutex(SYNCHRONIZE, TRUE, TEXT("MutexMapa"));
-				if (mutex == NULL) {
-					printf("\nErro a abrir o mutex do mapa!\n\n");
-					return 0;
-				}
+				WaitForSingleObject(mutex, INFINITE);
 				if (mapa[i][e].ocupado == 1) {
 					printf(" * ");
 				}
