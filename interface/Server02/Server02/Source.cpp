@@ -8,6 +8,8 @@
 
 #define MAPX = 1920
 #define MAPY = 1080
+#define BufferSize 100
+#define Buffers 10
 
 typedef struct obj {
 	int id;
@@ -19,13 +21,21 @@ typedef struct obj {
 	char bitmap[1024];
 	struct obj * prox;
 }obj;
+typedef struct {
+
+	TCHAR buff[Buffers][BufferSize];
+	int iEscrita;
+	int iLeitura;
+
+}bufferinfo;
 
 int objid;
 
-int criaobj(obj * objectos);
+int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy);
 int listaobjectos(obj * objectos);
-int apagaobjecto(obj * objectos);
+int apagaobjecto(obj * objectos, int id);
 obj * mapeamento();
+int buffercircular();
 
 int _tmain() {     // main main main main main main main main main main main main main main main main main main main main
 	int a;
@@ -37,14 +47,14 @@ int _tmain() {     // main main main main main main main main main main main mai
 		printf("\n	Opcoes\n\n");
 		printf("[ 1 ] -> Cria objecto\n");
 		printf("[ 2 ] -> Lista objecto\n");
-		printf("[ 3 ] -> Mapeamento de memoria\n");
+		printf("[ 3 ] -> BufferCircular\n");
 		printf("[ 4 ] -> Apaga objecto\n");
 		printf("[ 5 ] -> Sair\n");
 		scanf_s("%d", &a);
 		switch (a)
 		{
 		case 1:
-			criaobj(objectos);
+			//criaobj(objectos);
 			system("pause");
 			break;
 		case 2:
@@ -53,11 +63,11 @@ int _tmain() {     // main main main main main main main main main main main mai
 			system("pause");
 			break;
 		case 3:
-			objectos = mapeamento();
+			buffercircular();
 			system("pause");
 			break;
 		case 4:
-			apagaobjecto(objectos);
+			//apagaobjecto(objectos);
 			system("pause");
 			break;
 		case 5:
@@ -72,26 +82,68 @@ int _tmain() {     // main main main main main main main main main main main mai
 
 }
 
+int buffercircular() {
 
-int criaobj(obj * objectos) {
+	TCHAR NomeMemoria[] = TEXT("Nome da Memória Partilhada");
+	TCHAR NomeSemaforoPodeEscrever[] = TEXT("Semáforo Pode Escrever");
+	TCHAR NomeSemaforoPodeLer[] = TEXT("Semáforo Pode Ler");
+
+	TCHAR NomeMutexIndice[] = TEXT("MutexLeitor");
+
+	HANDLE PodeEscrever;
+	HANDLE PodeLer;
+	HANDLE hMemoria;
+	HANDLE mutex;
+	while (1) {
+
+		bufferinfo *shm;
+		int pos;
+
+
+		PodeEscrever = CreateSemaphore(NULL, Buffers, Buffers, NomeSemaforoPodeEscrever);
+		PodeLer = CreateSemaphore(NULL, 0, Buffers, NomeSemaforoPodeLer);
+		hMemoria = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(TCHAR[Buffers][BufferSize]), NomeMemoria);
+
+		mutex = CreateMutex(NULL, FALSE, NomeMutexIndice);
+
+		if (PodeEscrever == NULL || PodeLer == NULL || hMemoria == NULL) {
+			_tprintf(TEXT("[Erro]Criação de objectos do Windows(%d)\n"), GetLastError());
+			return -1;
+		}
+
+		shm = (bufferinfo*)MapViewOfFile(hMemoria, FILE_MAP_WRITE, 0, 0, sizeof(bufferinfo));
+		if (shm == NULL) {
+			_tprintf(TEXT("[Erro]Mapeamento da memória partilhada(%d)\n"), GetLastError());
+			return -1;
+		}
+
+		for (int i = 0;; ++i) {
+			WaitForSingleObject(PodeLer, INFINITE);
+
+			WaitForSingleObject(mutex, INFINITE);
+			//ler IN par aa var local POS
+			pos = shm->iLeitura;
+			shm->iLeitura = (shm->iLeitura + 1) % Buffers;
+			//Incrementar valor de IN
+			ReleaseMutex(mutex);
+
+
+			_tprintf(TEXT("Estou a ler do buffer %d o valor '%s' \n "), pos, shm->buff[pos]); // Reader reads data
+			ReleaseSemaphore(PodeEscrever, 1, NULL);
+		}
+
+		UnmapViewOfFile(shm);
+		CloseHandle(PodeEscrever);
+		CloseHandle(PodeLer);
+		CloseHandle(hMemoria);
+		CloseHandle(mutex);
+	}
+	return 0;
+}
+
+int criaobj(obj * objectos,int tipo, int x, int y, int tamx, int tamy) {
 	int i;
 	
-	int tipo;
-	int x;
-	int y;
-	int tamx;
-	int tamy;
-	printf("\nTipo:");
-	scanf_s("%d", &tipo);
-	printf("\nx:");
-	scanf_s("%d", &x);
-	printf("\ny:");
-	scanf_s("%d", &y);
-	printf("\ntamx:");
-	scanf_s("%d", &tamx);
-	printf("\ntamy");
-	scanf_s("%d", &tamy);
-
 	for (i = 0;objectos[i].id != NULL;i++) {
 	}
 	objid++;
@@ -141,10 +193,9 @@ obj * mapeamento() {
 	return ponteiro;
 }
 
-int apagaobjecto(obj * objectos) {
-	int id, i, e;
-	printf("\nid:\n");
-	scanf_s("%d", &id);
+int apagaobjecto(obj * objectos,int id) {
+	int i, e;
+
 	for (i = 0;objectos[i].id != NULL;i++) {
 		if (objectos[i].id==id) {
 			for (e = i;objectos[e].id != NULL;e++) {
