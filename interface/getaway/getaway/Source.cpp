@@ -18,12 +18,28 @@ typedef struct obj {
 }obj;
 
 obj * mapeamento();
+void ler(obj *objectos);
 
 int _tmain() {
 	obj * objectos;
 	objectos = mapeamento();
+	system("cls");
+
+	while (1) {
+		system("cls");
+		ler(objectos);
+		Sleep(500);
+	}
+
 	system("pause");
 	return 0;
+}
+
+void ler(obj *objectos) {
+	int i;
+	for (i = 0;objectos[i].id != NULL;i++) {
+		printf("	id: %d\n	tipo: %d\n	x: %d\n	y: %d\n	Largura: %d\n	Altura: %d\n\n	********************************\n", objectos[i].id, objectos[i].tipo, objectos[i].x, objectos[i].y, objectos[i].tamx, objectos[i].tamy);
+	}
 }
 
 obj * mapeamento() {
@@ -31,12 +47,15 @@ obj * mapeamento() {
 	HANDLE partilha;
 	obj *ponteiro;
 
-	partilha = OpenFileMapping(PAGE_READWRITE,
-		FALSE,
+	partilha = CreateFileMapping(INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(obj) * 300,
 		syNome);
 
 	if (partilha == NULL) {
-		_tprintf(TEXT("Nao foi possifel abrir o mapeamento,(%d)\nFile nao encontrado ERRO ""2""\nProblemas de permissao ERRO ""5""\n"), GetLastError());
+		_tprintf(TEXT("Nao foi possifel criar o mapeamento no systema, problemas de permissao ERRO ""5"" (%d).\n"), GetLastError());
 		return NULL;
 	}
 
@@ -44,9 +63,10 @@ obj * mapeamento() {
 		FILE_MAP_ALL_ACCESS,
 		0,
 		0,
-		sizeof(obj) * 200);
+		sizeof(obj) * 300);
+
 	if (ponteiro == NULL)
-		_tprintf(TEXT("coco no mapeamento (%d)\n"),GetLastError());
+		_tprintf(TEXT("Nao foi possivel fazer o mapeamento do vector no espaco mapeado ERRO (%d)\n"),GetLastError());
 
 	return ponteiro;
 }

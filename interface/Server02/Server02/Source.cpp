@@ -121,25 +121,22 @@ obj * mapeamento() {
 		NULL,
 		PAGE_READWRITE,
 		0,
-		sizeof(obj)*200,
+		sizeof(obj) * 300,
 		syNome);
 
-	if (partilha == NULL){
-		_tprintf(TEXT("Nao foi possifel criar o mapeamento, problemas de permissao ERRO ""5"" (%d).\n"),GetLastError());
+	if (partilha == NULL) {
+		_tprintf(TEXT("Nao foi possifel criar o mapeamento no systema, problemas de permissao ERRO ""5"" (%d).\n"), GetLastError());
 		return NULL;
 	}
 
-	if (GetLastError() == ERROR_ALREADY_EXISTS) // ERROR_ALREADY_EXISTS == 183
-		_tprintf(TEXT("Ja existia este mapeamento de memoria no systema(%d).\n"), GetLastError());
-	
 	ponteiro = (obj *)MapViewOfFile(partilha,
 		FILE_MAP_ALL_ACCESS,
 		0,
 		0,
-		sizeof(obj) * 200);
+		sizeof(obj) * 300);
 
 	if (ponteiro == NULL)
-		_tprintf(TEXT("coco no mapeamento\n"));
+		_tprintf(TEXT("Nao foi possivel fazer o mapeamento do vector no espaco mapeado ERRO (%d)\n"), GetLastError());
 
 	return ponteiro;
 }
