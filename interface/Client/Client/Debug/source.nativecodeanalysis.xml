@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\users\mauri\documents\github\so2_17-18\interface\client\client\</FILEPATH>
+      <FILENAME>source.cpp</FILENAME>
+      <LINE>22</LINE>
+      <COLUMN>20</COLUMN>
+    </SFA>
+    <DEFECTCODE>28252</DEFECTCODE>
+    <DESCRIPTION>Inconsistent annotation for 'WinMain': _Param_(2) has 'SAL_null(__maybe)' on the prior instance. See c:\program files (x86)\windows kits\8.1\include\um\winbase.h(905). </DESCRIPTION>
+    <FUNCTION>WinMain</FUNCTION>
+    <DECORATED>WinMain@16</DECORATED>
+    <FUNCLINE>22</FUNCLINE>
+    <PATH />
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\users\mauri\documents\github\so2_17-18\interface\client\client\</FILEPATH>
+      <FILENAME>source.cpp</FILENAME>
+      <LINE>22</LINE>
+      <COLUMN>20</COLUMN>
+    </SFA>
+    <DEFECTCODE>28253</DEFECTCODE>
+    <DESCRIPTION>Inconsistent annotation for 'WinMain': _Param_(2) has 'SAL_null(__no)' on this instance. See c:\program files (x86)\windows kits\8.1\include\um\winbase.h(905). </DESCRIPTION>
+    <FUNCTION>WinMain</FUNCTION>
+    <DECORATED>WinMain@16</DECORATED>
+    <FUNCLINE>22</FUNCLINE>
+    <PATH />
+  </DEFECT>
+</DEFECTS>

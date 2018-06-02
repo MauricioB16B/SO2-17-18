@@ -1,0 +1,6 @@
+﻿  Source.cpp
+c:\users\mauri\documents\github\so2_17-18\interface\client\client\source.cpp(37): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
+c:\users\mauri\documents\github\so2_17-18\interface\client\client\source.cpp(42): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
+  Client.vcxproj -> C:\Users\mauri\Documents\GitHub\SO2_17-18\EspaceInvaders\Debug\Client.exe
+c:\users\mauri\documents\github\so2_17-18\interface\client\client\source.cpp(22): warning C28252: Inconsistent annotation for 'WinMain': _Param_(2) has 'SAL_null(__maybe)' on the prior instance. See c:\program files (x86)\windows kits\8.1\include\um\winbase.h(905). 
+c:\users\mauri\documents\github\so2_17-18\interface\client\client\source.cpp(22): warning C28253: Inconsistent annotation for 'WinMain': _Param_(2) has 'SAL_null(__no)' on this instance. See c:\program files (x86)\windows kits\8.1\include\um\winbase.h(905). 
