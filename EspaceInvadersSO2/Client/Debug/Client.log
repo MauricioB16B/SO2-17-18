@@ -1,0 +1,4 @@
+﻿  Source.cpp
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\client\source.cpp(37): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\client\source.cpp(42): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
+  Client.vcxproj -> C:\Users\mauri\Documents\GitHub\SO2_17-18\EspaceInvadersSO2\Debug\Client.exe
