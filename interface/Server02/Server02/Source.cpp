@@ -19,11 +19,20 @@ typedef struct obj {
 	int tamx;
 	int tamy;
 	char bitmap[1024];
+	char nome[256];
 	struct obj * prox;
 }obj;
 typedef struct {
+	int tipo;
+	int aux1;
+	int aux2;
+	int aux3;
+	int aux4;
+	int aux5;
+}msg;
+typedef struct {
 
-	TCHAR buff[Buffers][BufferSize];
+	msg dados[Buffers];
 	int iEscrita;
 	int iLeitura;
 
@@ -31,11 +40,13 @@ typedef struct {
 
 int objid;
 
+DWORD WINAPI criaojogo(LPVOID lparam);
 int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy);
 int listaobjectos(obj * objectos);
 int apagaobjecto(obj * objectos, int id);
 obj * mapeamento();
 int buffercircular();
+int tratamsg(msg data);
 
 int _tmain() {     // main main main main main main main main main main main main main main main main main main main main
 	int a;
@@ -44,6 +55,7 @@ int _tmain() {     // main main main main main main main main main main main mai
 	objectos = mapeamento();
 	while (1)
 	{
+		printf("\n	Servidor\n");
 		printf("\n	Opcoes\n\n");
 		printf("[ 1 ] -> Cria objecto\n");
 		printf("[ 2 ] -> Lista objecto\n");
@@ -55,7 +67,6 @@ int _tmain() {     // main main main main main main main main main main main mai
 		{
 		case 1:
 			//criaobj(objectos);
-			system("pause");
 			break;
 		case 2:
 			system("cls");
@@ -99,10 +110,9 @@ int buffercircular() {
 		bufferinfo *shm;
 		int pos;
 
-
 		PodeEscrever = CreateSemaphore(NULL, Buffers, Buffers, NomeSemaforoPodeEscrever);
 		PodeLer = CreateSemaphore(NULL, 0, Buffers, NomeSemaforoPodeLer);
-		hMemoria = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(TCHAR[Buffers][BufferSize]), NomeMemoria);
+		hMemoria = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(bufferinfo), NomeMemoria);
 
 		mutex = CreateMutex(NULL, FALSE, NomeMutexIndice);
 
@@ -123,13 +133,13 @@ int buffercircular() {
 			WaitForSingleObject(mutex, INFINITE);
 			//ler IN par aa var local POS
 			pos = shm->iLeitura;
-			shm->iLeitura = (shm->iLeitura + 1) % Buffers;
+			shm->iLeitura = (shm->iLeitura + 1) % Buffers;//adiciona ate que é == a Buffers
 			//Incrementar valor de IN
 			ReleaseMutex(mutex);
-
-
-			_tprintf(TEXT("Estou a ler do buffer %d o valor '%s' \n "), pos, shm->buff[pos]); // Reader reads data
+			
+			tratamsg (shm->dados[pos]);// copia data do buffer para variavel da funcao e liberta o buffer
 			ReleaseSemaphore(PodeEscrever, 1, NULL);
+
 		}
 
 		UnmapViewOfFile(shm);
@@ -141,20 +151,60 @@ int buffercircular() {
 	return 0;
 }
 
-int criaobj(obj * objectos,int tipo, int x, int y, int tamx, int tamy) {
-	int i;
-	
-	for (i = 0;objectos[i].id != NULL;i++) {
+int tratamsg(msg data) {
+	HANDLE semaforo1 = CreateSemaphore(NULL, 1 , 1, TEXT("semaforo1"));
+	WaitForSingleObject(semaforo1, INFINITE);
+	switch (data.tipo){
+	case 1:
+		CreateThread(NULL, 0, criaojogo, (LPVOID)&data, 0, NULL);
+		break;
+	case 2:
+
+		break;
+	case 3:
+		break;
+	case 4:
+		break;
+	case 5:
+		break;
+	case 6:
+		break;
+	default:
+		break;
 	}
-	objid++;
-	objectos[i].id = objid;
-	objectos[i].tipo = tipo;
-	objectos[i].x = x;
-	objectos[i].y = y;
-	objectos[i].tamx = tamx;
-	objectos[i].tamy = tamy;
+	WaitForSingleObject(semaforo1, INFINITE);
+	ReleaseSemaphore(semaforo1, 1, NULL);
 	return 0;
 }
+
+ DWORD WINAPI criaojogo(LPVOID lparam) {
+	 msg *pdata = (msg *)lparam;
+	 msg data = *pdata;
+	 HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
+	 ReleaseSemaphore(semaforo1, 1, NULL);
+
+	 obj * objectos = mapeamento();
+	 int i;
+	 for (i = 0;i < 30;i++) {
+		 criaobj(objectos,1,i+10,i+20,10,10);
+	 }
+	 return 0;
+}
+
+ int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy) {
+	 int i;
+
+	 for (i = 0;objectos[i].id != NULL;i++) {
+	 }
+	 objid++;
+	 objectos[i].id = objid;
+	 objectos[i].tipo = tipo;
+	 objectos[i].x = x;
+	 objectos[i].y = y;
+	 objectos[i].tamx = tamx;
+	 objectos[i].tamy = tamy;
+	 return 0;
+ }
 
 int listaobjectos(obj * objectos) {
 	int i;
