@@ -29,6 +29,9 @@ typedef struct {
 	int aux3;
 	int aux4;
 	int aux5;
+	char aux6[1024];
+	char aux7[1024];
+	char aux8[1024];
 }msg;
 typedef struct {
 
@@ -42,19 +45,20 @@ typedef struct {
 obj * mapeamento();
 void ler(obj *objectos);
 int buffercircular();
-int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5);
+int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5, char *aux6, char *aux7, char *aux8);
 
 int _tmain() {
 	int a;
-
+	char ola[]{"ola maluco!"};
+	char ola2[]{ "ola maluco!2" };
 	while (1)
 	{
 		printf("\n	Getaway\n");
 		printf("\n	Opcoes\n\n");
 		printf("[ 1 ] -> Cria Objecto\n");
 		printf("[ 2 ] -> Cria Jogo classico\n");
-		printf("[ 3 ] -> BufferCircular\n");
-		printf("[ 4 ] -> Apaga objecto\n");
+		printf("[ 3 ] -> Mostra Objectos mapa\n");
+		printf("[ 4 ] -> teste2\n");
 		printf("[ 5 ] -> Sair\n");
 		scanf_s("%d", &a);
 		switch (a)
@@ -62,11 +66,13 @@ int _tmain() {
 		case 1:
 			break;
 		case 2:
-			buffercircular2(1, 1, 1, 1, 1, 1);
+			buffercircular2(2, 153, 153, 153, 153, 153,ola,ola,ola);
 			break;
 		case 3:
+			ler(mapeamento());
 			break;
 		case 4:
+			buffercircular2(2, 153, 153, 153, 153, 153, ola2, ola2, ola2);
 			break;
 		case 5:
 			return 0;
@@ -165,7 +171,7 @@ int buffercircular() {
 	return 0;
 }
 
-int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5) {
+int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5, char *aux6, char *aux7, char *aux8) {
 	TCHAR NomeMemoria[] = TEXT("Nome da Memória Partilhada");
 	TCHAR NomeSemaforoPodeEscrever[] = TEXT("Semáforo Pode Escrever");
 	TCHAR NomeSemaforoPodeLer[] = TEXT("Semáforo Pode Ler");
@@ -233,13 +239,16 @@ int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5) 
 		shm->dados[pos].aux3 = aux3;
 		shm->dados[pos].aux4 = aux4;
 		shm->dados[pos].aux5 = aux5;
+		strcpy_s(shm->dados[pos].aux6, aux6);
+		strcpy_s(shm->dados[pos].aux7, aux7);
+		strcpy_s(shm->dados[pos].aux8, aux8);
 		//_stprintf_s(shm->buff[pos], BufferSize, TEXT("Pedido %d#%02d"), GetCurrentProcessId(), i);
 		//_tprintf(TEXT("Escrever para buffer %d o valor %d \n"), pos, shm->iEscrita);
 		_tprintf(TEXT("Escrever MSG para buffer circular\n"));
 
 		ReleaseMutex(mutex);
 
-		Sleep(1000);
+		//Sleep(1000);
 		ReleaseSemaphore(PodeLer, 1, NULL);
 	}
 
@@ -256,6 +265,7 @@ void ler(obj *objectos) {
 	for (i = 0;objectos[i].id != NULL;i++) {
 		printf("	id: %d\n	tipo: %d\n	x: %d\n	y: %d\n	Largura: %d\n	Altura: %d\n\n	********************************\n", objectos[i].id, objectos[i].tipo, objectos[i].x, objectos[i].y, objectos[i].tamx, objectos[i].tamy);
 	}
+	system("pause");
 }
 
 obj * mapeamento() {

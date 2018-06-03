@@ -29,6 +29,9 @@ typedef struct {
 	int aux3;
 	int aux4;
 	int aux5;
+	char aux6[1024];
+	char aux7[1024];
+	char aux8[1024];
 }msg;
 typedef struct {
 
@@ -41,7 +44,7 @@ typedef struct {
 int objid;
 
 DWORD WINAPI criaojogo(LPVOID lparam);
-int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy);
+int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy, char *bitmap, char *nome, char *aux);
 int listaobjectos(obj * objectos);
 int apagaobjecto(obj * objectos, int id);
 obj * mapeamento();
@@ -49,47 +52,13 @@ int buffercircular();
 int tratamsg(msg data);
 
 int _tmain() {     // main main main main main main main main main main main main main main main main main main main main
-	int a;
-	obj * objectos;
 	objid = 0;
-	objectos = mapeamento();
-	while (1)
-	{
-		printf("\n	Servidor\n");
-		printf("\n	Opcoes\n\n");
-		printf("[ 1 ] -> Cria objecto\n");
-		printf("[ 2 ] -> Lista objecto\n");
-		printf("[ 3 ] -> BufferCircular\n");
-		printf("[ 4 ] -> Apaga objecto\n");
-		printf("[ 5 ] -> Sair\n");
-		scanf_s("%d", &a);
-		switch (a)
-		{
-		case 1:
-			//criaobj(objectos);
-			break;
-		case 2:
-			system("cls");
-			listaobjectos(objectos);
-			system("pause");
-			break;
-		case 3:
-			buffercircular();
-			system("pause");
-			break;
-		case 4:
-			//apagaobjecto(objectos);
-			system("pause");
-			break;
-		case 5:
-			return 0;
-			break;
-		default:
-			break;
-		}
-		system("cls");
-	}
-
+	mapeamento();
+	printf("\n	Servidor\n");
+	printf("\n	Opcoes\n\n");
+	printf("\n\n**	A Mapear zona de memoria RAM partilhada\n\n");
+	printf("\n\n**	A tratar mensagens do Buffer getaway\n\n");
+	buffercircular();
 
 }
 
@@ -156,10 +125,9 @@ int tratamsg(msg data) {
 	WaitForSingleObject(semaforo1, INFINITE);
 	switch (data.tipo) {
 	case 1:
-		CreateThread(NULL, 0, criaojogo, (LPVOID)&data, 0, NULL);
 		break;
 	case 2:
-
+		CreateThread(NULL, 0, criaojogo, (LPVOID)&data, 0, NULL);
 		break;
 	case 3:
 		break;
@@ -178,20 +146,25 @@ int tratamsg(msg data) {
 }
 
 DWORD WINAPI criaojogo(LPVOID lparam) {
+	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
 	msg *pdata = (msg *)lparam;
 	msg data = *pdata;
-	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
+	strcpy_s(data.aux6, pdata->aux6);
+	strcpy_s(data.aux7, pdata->aux7);
+	strcpy_s(data.aux8, pdata->aux8);
 	ReleaseSemaphore(semaforo1, 1, NULL);
-
 	obj * objectos = mapeamento();
+	
 	int i;
 	for (i = 0;i < 30;i++) {
-		criaobj(objectos, 1, i + 10, i + 20, 10, 10);
+		criaobj(objectos, data.aux1, data.aux2, data.aux3, data.aux4, data.aux5,data.aux6,data.aux7,data.aux8);
 	}
+	printf("String1:%s\nString2:%s\nString3:%s\n",data.aux6, data.aux7, data.aux8);
+
 	return 0;
 }
 
-int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy) {
+int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy,char *bitmap, char *nome,char *aux) {
 	int i;
 
 	for (i = 0;objectos[i].id != NULL;i++) {
