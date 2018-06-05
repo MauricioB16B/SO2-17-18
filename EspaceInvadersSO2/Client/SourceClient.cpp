@@ -101,6 +101,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
 	switch (message)
 	{
+	case WM_KEYDOWN:
+		if (wParam == 0x32 || wParam == VK_NUMPAD2)
+			MessageBox(NULL, _T("Tecla 2"), _T("Janela de testes!! "), NULL);
+
+		if(wParam == 0x31 || wParam == VK_NUMPAD1)
+			MessageBox(NULL, _T("Tecla 1"), _T("Janela de testes!! "), NULL);
+
+		break;
 	case WM_LBUTTONDOWN:
 		//MessageBox(NULL, _T("Cenas maradas"), _T("Janela de testes!! "), NULL);
 		rect1.left = LOWORD(lParam);
