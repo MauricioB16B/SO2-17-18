@@ -7,6 +7,9 @@
 #include <time.h>
 #include <tchar.h>
 
+// Declaration of Constantes e valores
+#define PIPE_NAME TEXT("\\\\.\\pipe\\main")
+
 // Global variables  
 RECT rect1;
 int retang = 0;
@@ -18,7 +21,7 @@ static TCHAR szTitle[] = _T("Espace invaders SO2 Mauricio");
 HINSTANCE hInst;
   
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-
+DWORD WINAPI thread1(LPVOID param);
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow){
 	WNDCLASSEX wcex;
 
@@ -97,12 +100,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	switch (message)
 	{
 	case WM_KEYDOWN:
-		if (wParam == 0x32 || wParam == VK_NUMPAD2)
-			MessageBox(NULL, _T("Tecla 2"), _T("Janela de testes!! "), NULL);
+		if (wParam == 0x32 || wParam == VK_NUMPAD2) {
+			CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
+		}
 
-		if(wParam == 0x31 || wParam == VK_NUMPAD1)
+		if (wParam == 0x31 || wParam == VK_NUMPAD1) {
 			MessageBox(NULL, _T("Tecla 1"), _T("Janela de testes!! "), NULL);
-
+		}
 		break;
 	case WM_LBUTTONDOWN:
 		//MessageBox(NULL, _T("Cenas maradas"), _T("Janela de testes!! "), NULL);
@@ -155,5 +159,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		break;
 	}
 
+	return 0;
+}
+
+DWORD WINAPI thread1(LPVOID param) {
+	HANDLE hpipe;
+	if (!WaitNamedPipe(PIPE_NAME, NMPWAIT_WAIT_FOREVER)) {
+		MessageBox(NULL, _T("EROO (WaitNamedPipe)"), _T("ERRO "), MB_ICONERROR | MB_RETRYCANCEL);
+		return 0;
+	}
+	hpipe = CreateFile(PIPE_NAME, GENERIC_WRITE, 0, NULL, OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hpipe==NULL) {
+		MessageBox(NULL, _T("CreateFile"), _T("ERRO"), NULL);
+		return 0;
+	}
+	MessageBox(NULL, _T("YOOOOOOOOOOOOOOOOOOOOO"), _T("Janela de testes da THREAD1!! "), NULL);
 	return 0;
 }

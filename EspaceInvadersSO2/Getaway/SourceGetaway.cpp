@@ -8,6 +8,7 @@
 
 #define BufferSize 100
 #define Buffers 10
+#define PIPE_NAME TEXT("\\\\.\\pipe\\main")
 
 
 
@@ -46,16 +47,26 @@ obj * mapeamento();
 void ler(obj *objectos);
 int buffercircular();
 int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5, char *aux6, char *aux7, char *aux8);
+DWORD WINAPI RecebeClientesPipeGeral(LPVOID param);
+void pipalhadas();
+DWORD WINAPI TrataClientes(LPVOID param);
+
+HANDLE ArrayHandles[255];
 
 int _tmain() {
 	int a;
 	char ola[]{"Ines"};
-	char ola2[]{ "Mauricio" };
-	while (1)
-	{
+	char ola2[]{ "Mauricio"};
+
+////////////**//	#ifdef UNICODE
+////////////**//		_setmode(_fileno(stdin), _O_WTEXT);
+////////////**//		_setmode(_fileno(stdout), _O_WTEXT);
+////////////**//	#endif
+
+	while (1){
 		printf("\n	Getaway\n");
 		printf("\n	Opcoes\n\n");
-		printf("[ 1 ] -> Cria Objecto\n");
+		printf("[ 1 ] -> Cria Pipe geral [GETAWAY]<--[CLIENTE]\n");
 		printf("[ 2 ] -> Cria Jogo classico\n");
 		printf("[ 3 ] -> Mostra Objectos mapa\n");
 		printf("[ 4 ] -> teste2\n");
@@ -64,6 +75,7 @@ int _tmain() {
 		switch (a)
 		{
 		case 1:
+			CreateThread(NULL, 0, RecebeClientesPipeGeral, (LPVOID)NULL , 0, NULL);
 			break;
 		case 2:
 			buffercircular2(2, 153, 153, 153, 153, 153,ola,ola,ola);
@@ -295,4 +307,42 @@ obj * mapeamento() {
 		_tprintf(TEXT("Nao foi possivel fazer o mapeamento do vector no espaco mapeado ERRO (%d)\n"), GetLastError());
 
 	return ponteiro;
+}
+
+void pipalhadas() {
+	HANDLE hPipeGeral;
+	hPipeGeral = CreateNamedPipe(PIPE_NAME , PIPE_ACCESS_INBOUND, PIPE_WAIT | PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, PIPE_UNLIMITED_INSTANCES , sizeof(msg), sizeof(msg), 1000, NULL);
+}
+
+DWORD WINAPI RecebeClientesPipeGeral(LPVOID param) {
+	Sleep(100);
+	HANDLE hPipeGeral;
+	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
+	int i = 0;
+	while (1) {
+		hPipeGeral = CreateNamedPipe(PIPE_NAME, PIPE_ACCESS_INBOUND, PIPE_WAIT | PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, PIPE_UNLIMITED_INSTANCES, sizeof(msg), sizeof(msg), 1000, NULL);
+		if (hPipeGeral == NULL) {
+			printf_s("ERRO no pipe geral(CreateNamedPipe)");
+		}
+		printf_s("Esperar ligaçao  (ConnectNamedPipe) .....\n");
+		if (!ConnectNamedPipe(hPipeGeral, NULL)) {
+			printf_s("EROO Ligaçao ao cliente! (ConnectNamedPipe)");
+		}
+		ArrayHandles[i] = hPipeGeral;
+		WaitForSingleObject(semaforo1, INFINITE);
+		CreateThread(NULL, 0, TrataClientes, (LPVOID)&i, 0, NULL);
+		i++;
+	}
+	return 0;
+}
+
+DWORD WINAPI TrataClientes(LPVOID param) {
+	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
+	int *e;
+	int i;
+	e = (int *)param;
+	i = *e;
+	ReleaseSemaphore(semaforo1, 1, NULL);
+	printf_s("A tratar Cliente Numero:%d\n",i);
+	return 0;
 }
