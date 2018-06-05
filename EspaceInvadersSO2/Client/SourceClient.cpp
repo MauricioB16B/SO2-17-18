@@ -1,6 +1,3 @@
-// GT_HelloWorldWin32.cpp  
-// compile with: /D_UNICODE /DUNICODE /DWIN32 /D_WINDOWS /c  
-
 #include <windows.h>  
 #include <stdlib.h>  
 #include <string.h>  
@@ -13,15 +10,13 @@
 // Global variables  
 RECT rect1;
 int retang = 0;
-// The main window class name.  
+// The main window class nome.  
 static TCHAR szWindowClass[] = _T("win32app");
 
-// The string that appears in the application's title bar.  
 static TCHAR szTitle[] = _T("Espace invaders SO2 Mauricio");
 
 HINSTANCE hInst;
-
-// Forward declarations of functions included in this code module:  
+  
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow){
@@ -85,10 +80,10 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 //  
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)  
 //  
-//  PURPOSE:  Processes messages for the main window.  
+//  PURPOSE:  Processes messages para a main window.  
 //  
 //  WM_PAINT    - Paint the main window  
-//  WM_DESTROY  - post a quit message and return  
+//  WM_DESTROY  - Procedimento de quit  
 //  
 // 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
