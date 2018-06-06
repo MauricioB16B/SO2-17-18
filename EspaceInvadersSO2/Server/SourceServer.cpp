@@ -29,9 +29,9 @@ typedef struct {
 	int aux3;
 	int aux4;
 	int aux5;
-	char aux6[1024];
-	char aux7[1024];
-	char aux8[1024];
+	TCHAR aux6[1024];
+	TCHAR aux7[1024];
+	TCHAR aux8[1024];
 }msg;
 typedef struct {
 
@@ -44,7 +44,7 @@ typedef struct {
 int objid;
 
 DWORD WINAPI criaojogo(LPVOID lparam);
-int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy, char *bitmap, char *nome, char *aux);
+int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy, TCHAR *bitmap, TCHAR *nome, TCHAR *aux);
 int listaobjectos(obj * objectos);
 int apagaobjecto(obj * objectos, int id);
 obj * mapeamento();
@@ -149,9 +149,9 @@ DWORD WINAPI criaojogo(LPVOID lparam) {
 	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
 	msg *pdata = (msg *)lparam;
 	msg data = *pdata;
-	strcpy_s(data.aux6, pdata->aux6);
-	strcpy_s(data.aux7, pdata->aux7);
-	strcpy_s(data.aux8, pdata->aux8);
+	wcscpy_s(data.aux6, pdata->aux6);
+	wcscpy_s(data.aux7, pdata->aux7);
+	wcscpy_s(data.aux8, pdata->aux8);
 	ReleaseSemaphore(semaforo1, 1, NULL);
 	obj * objectos = mapeamento();
 	
@@ -159,12 +159,12 @@ DWORD WINAPI criaojogo(LPVOID lparam) {
 	for (i = 0;i < 30;i++) {
 		criaobj(objectos, data.aux1, data.aux2, data.aux3, data.aux4, data.aux5,data.aux6,data.aux7,data.aux8);
 	}
-	printf("String1:%s\nString2:%s\nString3:%s\n",data.aux6, data.aux7, data.aux8);
+	wprintf(TEXT("String1:%s\nString2:%s\nString3:%s\n"),data.aux6, data.aux7, data.aux8);
 
 	return 0;
 }
 
-int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy,char *bitmap, char *nome,char *aux) {
+int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy,TCHAR *bitmap, TCHAR *nome, TCHAR *aux) {
 	int i;
 
 	for (i = 0;objectos[i].id != NULL;i++) {

@@ -1,2 +1,3 @@
 ﻿  SourceGetaway.cpp
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\getaway\sourcegetaway.cpp(346): warning C4101: 'hPipeObjOut': unreferenced local variable
   Getaway.vcxproj -> C:\Users\mauri\Documents\GitHub\SO2_17-18\EspaceInvadersSO2\Debug\Getaway.exe

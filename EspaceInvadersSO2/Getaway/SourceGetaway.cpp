@@ -30,9 +30,9 @@ typedef struct {
 	int aux3;
 	int aux4;
 	int aux5;
-	char aux6[1024];
-	char aux7[1024];
-	char aux8[1024];
+	TCHAR aux6[1024];
+	TCHAR aux7[1024];
+	TCHAR aux8[1024];
 }msg;
 typedef struct {
 
@@ -46,7 +46,7 @@ typedef struct {
 obj * mapeamento();
 void ler(obj *objectos);
 int buffercircular();
-int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5, char *aux6, char *aux7, char *aux8);
+int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5, TCHAR *aux6, TCHAR *aux7, TCHAR *aux8);
 DWORD WINAPI RecebeClientesPipeGeral(LPVOID param);
 void pipalhadas();
 DWORD WINAPI TrataClientes(LPVOID param);
@@ -55,14 +55,14 @@ HANDLE ArrayHandles[255];
 
 int _tmain() {
 	int a;
-	char ola[]{"Ines"};
-	char ola2[]{ "Mauricio"};
+	TCHAR ola[]{TEXT("Ines")};
+	TCHAR ola2[]{TEXT("Mauricio")};
 
 ////////////**//	#ifdef UNICODE
 ////////////**//		_setmode(_fileno(stdin), _O_WTEXT);
 ////////////**//		_setmode(_fileno(stdout), _O_WTEXT);
 ////////////**//	#endif
-
+	CreateThread(NULL, 0, RecebeClientesPipeGeral, (LPVOID)NULL, 0, NULL);
 	while (1){
 		printf("\n	Getaway\n");
 		printf("\n	Opcoes\n\n");
@@ -78,7 +78,7 @@ int _tmain() {
 			CreateThread(NULL, 0, RecebeClientesPipeGeral, (LPVOID)NULL , 0, NULL);
 			break;
 		case 2:
-			buffercircular2(2, 153, 153, 153, 153, 153,ola,ola,ola);
+			buffercircular2(2, 153, 153, 153, 153, 153, ola, ola, ola);
 			break;
 		case 3:
 			ler(mapeamento());
@@ -183,7 +183,7 @@ int buffercircular() {
 	return 0;
 }
 
-int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5, char *aux6, char *aux7, char *aux8) {
+int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5, TCHAR *aux6, TCHAR *aux7, TCHAR *aux8) {
 	TCHAR NomeMemoria[] = TEXT("Nome da Memória Partilhada");
 	TCHAR NomeSemaforoPodeEscrever[] = TEXT("Semáforo Pode Escrever");
 	TCHAR NomeSemaforoPodeLer[] = TEXT("Semáforo Pode Ler");
@@ -251,9 +251,9 @@ int buffercircular2(int tipo, int aux1, int aux2, int aux3, int aux4, int aux5, 
 		shm->dados[pos].aux3 = aux3;
 		shm->dados[pos].aux4 = aux4;
 		shm->dados[pos].aux5 = aux5;
-		strcpy_s(shm->dados[pos].aux6, aux6);
-		strcpy_s(shm->dados[pos].aux7, aux7);
-		strcpy_s(shm->dados[pos].aux8, aux8);
+		wcscpy_s(shm->dados[pos].aux6, aux6);
+		wcscpy_s(shm->dados[pos].aux7, aux7);
+		wcscpy_s(shm->dados[pos].aux8, aux8);
 		//_stprintf_s(shm->buff[pos], BufferSize, TEXT("Pedido %d#%02d"), GetCurrentProcessId(), i);
 		//_tprintf(TEXT("Escrever para buffer %d o valor %d \n"), pos, shm->iEscrita);
 		_tprintf(TEXT("Escrever MSG para buffer circular\n"));
@@ -329,8 +329,12 @@ DWORD WINAPI RecebeClientesPipeGeral(LPVOID param) {
 			printf_s("EROO Ligaçao ao cliente! (ConnectNamedPipe)");
 		}
 		ArrayHandles[i] = hPipeGeral;
+		
 		WaitForSingleObject(semaforo1, INFINITE);
 		CreateThread(NULL, 0, TrataClientes, (LPVOID)&i, 0, NULL);
+		WaitForSingleObject(semaforo1, INFINITE);
+		ReleaseSemaphore(semaforo1, 1, NULL);
+
 		i++;
 	}
 	return 0;
@@ -338,11 +342,44 @@ DWORD WINAPI RecebeClientesPipeGeral(LPVOID param) {
 
 DWORD WINAPI TrataClientes(LPVOID param) {
 	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
+	HANDLE hPipeMsgOut;
+	HANDLE hPipeObjOut;
+	msg data;
+	DWORD n;
 	int *e;
 	int i;
 	e = (int *)param;
 	i = *e;
 	ReleaseSemaphore(semaforo1, 1, NULL);
-	printf_s("A tratar Cliente Numero:%d\n",i);
+
+	ReadFile(ArrayHandles[i],&data,sizeof(msg),&n,NULL);
+	wprintf_s(TEXT("A tratar Cliente Numero:%d   ----> %s \n"),i,data.aux8);
+	
+	if (!WaitNamedPipe(data.aux8, NMPWAIT_WAIT_FOREVER)) {
+		wprintf_s(TEXT("Pipe do cliente nao encontrado"));
+	}
+
+	hPipeMsgOut = CreateFile(data.aux8, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hPipeMsgOut == NULL) {
+		wprintf_s(TEXT("ERROR!  (CreateFile)"));
+	}
+
+	swprintf_s(data.aux8, TEXT("Conectado o indice do handle deste process no getaway é %d"),i);
+	WriteFile(hPipeMsgOut, &data, sizeof(msg), &n, NULL);
+
+	while (1) {
+		if (ReadFile(ArrayHandles[i], &data, sizeof(msg), &n, NULL) == 0) {
+			printf_s("deu merda e nao li nada! vou terminar\n");
+			return 0;
+		}
+		switch (data.aux1){
+		case 512:
+			swprintf_s(data.aux6, TEXT("(V2.0)Conectado o indice do handle deste process no getaway é %d"), i);
+			WriteFile(hPipeMsgOut, &data, sizeof(msg), &n, NULL);
+			break;
+		default:
+			break;
+		}
+	}
 	return 0;
 }

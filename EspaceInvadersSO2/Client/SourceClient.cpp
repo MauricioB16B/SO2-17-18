@@ -10,7 +10,21 @@
 // Declaration of Constantes e valores
 #define PIPE_NAME TEXT("\\\\.\\pipe\\main")
 
-// Global variables  
+// Strctures declaration
+typedef struct {
+	int tipo;
+	int aux1;
+	int aux2;
+	int aux3;
+	int aux4;
+	int aux5;
+	TCHAR aux6[1024];
+	TCHAR aux7[1024];
+	TCHAR aux8[1024];
+}msg;
+
+// Global variables
+HANDLE hpipe, hpipe2;
 RECT rect1;
 int retang = 0;
 // The main window class nome.  
@@ -22,6 +36,7 @@ HINSTANCE hInst;
   
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 DWORD WINAPI thread1(LPVOID param);
+
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow){
 	WNDCLASSEX wcex;
 
@@ -91,21 +106,27 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 // 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	PAINTSTRUCT ps;
+	msg data;
 	HDC hdc;
 	TCHAR string[] = _T("1 -> Iniciar names pipes");
-	WCHAR string2[]=_T("2 -> sair");
+	WCHAR string2[] = _T("2 -> sair");
 	//TCHAR string2[1024];
 	//DWORD xPos, yPos;
 
 	switch (message)
 	{
+	case WM_CREATE:
+		CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
 	case WM_KEYDOWN:
 		if (wParam == 0x32 || wParam == VK_NUMPAD2) {
-			CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
+			MessageBox(NULL, _T("Tecla 2"), _T("Janela de testes!! "), NULL);
 		}
 
 		if (wParam == 0x31 || wParam == VK_NUMPAD1) {
-			MessageBox(NULL, _T("Tecla 1"), _T("Janela de testes!! "), NULL);
+			data.aux1 = 512;
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
+			ReadFile(hpipe2, &data, sizeof(msg), NULL, NULL);
+			MessageBox(NULL, data.aux6, _T(" sucess!! "), MB_ICONASTERISK | MB_OK);
 		}
 		break;
 	case WM_LBUTTONDOWN:
@@ -163,9 +184,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 }
 
 DWORD WINAPI thread1(LPVOID param) {
-	HANDLE hpipe;
+	Sleep(500);
+	msg data,dataIn;
+	DWORD n;
+	TCHAR NomePipeInMsg[1024];
+	TCHAR NomePipeInObj[1024];
+	TCHAR string[1024];
+	swprintf_s(NomePipeInMsg, TEXT("\\\\.\\pipe\\%d"), GetCurrentProcessId());
+	swprintf_s(NomePipeInObj, TEXT("\\\\.\\pipe\\%dobj"), GetCurrentProcessId());
+
+	//TCHAR string[1024];
 	if (!WaitNamedPipe(PIPE_NAME, NMPWAIT_WAIT_FOREVER)) {
-		MessageBox(NULL, _T("EROO (WaitNamedPipe)"), _T("ERRO "), MB_ICONERROR | MB_RETRYCANCEL);
+		MessageBox(NULL, _T("EROO Pipe de comunicaçao nao encontrado!"), _T(" Comunications Error "), MB_ICONERROR | MB_OK);
 		return 0;
 	}
 	hpipe = CreateFile(PIPE_NAME, GENERIC_WRITE, 0, NULL, OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL, NULL);
@@ -173,6 +203,23 @@ DWORD WINAPI thread1(LPVOID param) {
 		MessageBox(NULL, _T("CreateFile"), _T("ERRO"), NULL);
 		return 0;
 	}
-	MessageBox(NULL, _T("YOOOOOOOOOOOOOOOOOOOOO"), _T("Janela de testes da THREAD1!! "), NULL);
+	wcscpy_s(data.aux8, NomePipeInMsg);
+	if (!WriteFile(hpipe,&data,sizeof(msg),&n,NULL)) {
+		MessageBox(NULL, _T("EROO Nao foi possivel escrever no Pipe"), _T(" Comunications Error "), MB_ICONERROR | MB_OK);
+	}
+
+	hpipe2 = CreateNamedPipe(NomePipeInMsg, PIPE_ACCESS_INBOUND, PIPE_WAIT | PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, PIPE_UNLIMITED_INSTANCES, sizeof(msg), sizeof(msg), 1000, NULL);
+	if (hpipe2 == NULL) {
+		MessageBox(NULL, _T("ERRO no pipe de entrada das MSG(CreateNamedPipe)"), _T(" Comunications Error "), MB_ICONERROR | MB_OK);
+	}
+
+	if (! ConnectNamedPipe(hpipe2, NULL)) {
+		MessageBox(NULL, _T("EROO Ligaçao ao Getaway! (ConnectNamedPipe)"), _T(" Comunications Error "), MB_ICONERROR | MB_OK);
+	}
+
+	ReadFile(hpipe2, &dataIn, sizeof(msg), &n, NULL);
+	swprintf_s(string, TEXT("%s"), dataIn.aux8);
+	MessageBox(NULL, string, _T(" sucess!! "), MB_ICONASTERISK | MB_OK);
+
 	return 0;
 }
