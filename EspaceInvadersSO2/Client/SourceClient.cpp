@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <tchar.h>
+#include "resource.h"
 
 // Declaration of Constantes e valores
 #define PIPE_NAME TEXT("\\\\.\\pipe\\main")
@@ -36,6 +37,7 @@ HINSTANCE hInst;
   
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 DWORD WINAPI thread1(LPVOID param);
+BOOL CALLBACK DeleteItemProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow){
 	WNDCLASSEX wcex;
@@ -47,10 +49,10 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = 0;
 	wcex.hInstance = hInstance;
-	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WARNING));
+	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wcex.lpszMenuName = NULL;
+	wcex.lpszMenuName = MAKEINTRESOURCE(IDR_MENU1);
 	wcex.lpszClassName = szWindowClass;
 	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_WARNING));
 
@@ -115,6 +117,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
 	switch (message)
 	{
+	case WM_COMMAND:
+		switch (LOWORD(wParam)){
+		case ID_FILE_SAIR40005:
+			PostQuitMessage(0);
+			break;
+		case ID_FILE_SAIR:
+			CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
+			break;
+		case ID_OPCOES_DEFINICOES:
+			DialogBox(NULL, MAKEINTRESOURCE(IDD_PROPPAGE_MEDIUM), hWnd, (DLGPROC)DeleteItemProc);
+			break;
+		default:
+			break;
+		}
+		break;
 	case WM_CREATE:
 		CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
 	case WM_KEYDOWN:
@@ -222,4 +239,8 @@ DWORD WINAPI thread1(LPVOID param) {
 	MessageBox(NULL, string, _T(" sucess!! "), MB_ICONASTERISK | MB_OK);
 
 	return 0;
+}
+
+BOOL CALLBACK DeleteItemProc(HWND hwndDlg,UINT message,WPARAM wParam,LPARAM lParam){
+	return FALSE;
 }
