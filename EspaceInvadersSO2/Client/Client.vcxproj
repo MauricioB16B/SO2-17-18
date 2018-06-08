@@ -147,7 +147,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="SourceClient.cpp" />
-    <ClCompile Include="TesteClass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />

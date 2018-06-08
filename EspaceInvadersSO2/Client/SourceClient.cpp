@@ -28,16 +28,19 @@ typedef struct {
 HANDLE hpipe, hpipe2;
 RECT rect1;
 int retang = 0;
-// The main window class nome.  
+// The main window class nome.
+
 static TCHAR szWindowClass[] = _T("win32app");
-
 static TCHAR szTitle[] = _T("Espace invaders SO2 Mauricio");
-
 HINSTANCE hInst;
+
   
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
 DWORD WINAPI thread1(LPVOID param);
+
 BOOL CALLBACK DeleteItemProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
+
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow){
 	WNDCLASSEX wcex;
@@ -87,6 +90,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 	ShowWindow(hWnd,nCmdShow);
 	UpdateWindow(hWnd);
 
+
 	// Main message loop:  
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)){
@@ -97,15 +101,6 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 	return (int)msg.wParam;
 }
 
-//  
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)  
-//  
-//  PURPOSE:  Processes messages para a main window.  
-//  
-//  WM_PAINT    - Paint the main window  
-//  WM_DESTROY  - Procedimento de quit  
-//  
-// 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	PAINTSTRUCT ps;
 	msg data;
@@ -125,8 +120,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		case ID_FILE_SAIR:
 			CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
 			break;
-		case ID_OPCOES_DEFINICOES:
-			DialogBox(NULL, MAKEINTRESOURCE(IDD_PROPPAGE_MEDIUM), hWnd, (DLGPROC)DeleteItemProc);
+		case ID_OPCOES_DEFINICOES: 
+			DialogBox(NULL, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, (DLGPROC)DeleteItemProc);
 			break;
 		default:
 			break;
@@ -242,5 +237,24 @@ DWORD WINAPI thread1(LPVOID param) {
 }
 
 BOOL CALLBACK DeleteItemProc(HWND hwndDlg,UINT message,WPARAM wParam,LPARAM lParam){
-	return FALSE;
+	PAINTSTRUCT ps;
+	HDC hdc;
+	WCHAR string[] = {TEXT("MSG Janela de Dialogo finalmente a funcionar!")};
+	switch (message){
+	case WM_PAINT:
+		hdc = BeginPaint(hwndDlg, &ps);
+		EndPaint(hwndDlg, &ps);
+		break;
+	case WM_COMMAND:
+		if(LOWORD(wParam)== IDC_CANCELL)
+			EndDialog(hwndDlg, LOWORD(wParam));
+		if (LOWORD(wParam) == IDC_GET)
+			MessageBox(NULL, _T("Botao GET"), _T("Janela de testes!! "), NULL);
+		if (LOWORD(wParam) == IDC_SET)
+			MessageBox(NULL, _T("Botao SET"), _T("Janela de testes!! "), NULL);
+		break;
+	case WM_CLOSE:
+		EndDialog(hwndDlg, LOWORD(wParam));
+		break;
+	}return FALSE;		
 }
