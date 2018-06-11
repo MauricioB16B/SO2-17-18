@@ -28,6 +28,8 @@ typedef struct {
 HANDLE hpipe, hpipe2;
 RECT rect1;
 int retang = 0;
+HBITMAP bmp;
+HDC dc, dc2;
 // The main window class nome.
 
 static TCHAR szWindowClass[] = _T("win32app");
@@ -77,7 +79,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 					   // hInstance: the first parameter from WinMain  
 					   // NULL: not used in this application
 
-	HWND hWnd = CreateWindow(szWindowClass,szTitle,WS_OVERLAPPEDWINDOW,CW_USEDEFAULT, CW_USEDEFAULT,1300, 500,NULL,NULL,hInstance,NULL);
+	HWND hWnd = CreateWindow(szWindowClass,szTitle, WS_OVERLAPPED | WS_MINIMIZEBOX | WS_SYSMENU,CW_USEDEFAULT , CW_USEDEFAULT,1300, 500,NULL,NULL,hInstance,NULL);
 
 	if (!hWnd){
 		MessageBox(NULL,_T("Call to CreateWindow failed!"),_T("Win32 Guided Tour"),NULL);
@@ -89,7 +91,6 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 	// nCmdShow: the fourth parameter from WinMain  
 	ShowWindow(hWnd,nCmdShow);
 	UpdateWindow(hWnd);
-
 
 	// Main message loop:  
 	MSG msg;
@@ -108,7 +109,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	TCHAR string[] = _T("1 -> Iniciar names pipes");
 	WCHAR string2[] = _T("2 -> sair");
 	HBITMAP bmp;
-	HDC dc,dc2;
 	TCHAR string22[1024];
 
 	switch (message)
@@ -130,11 +130,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		break;
 	case WM_CREATE:
 		CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
+		dc = GetDC(hWnd);
+		dc2 = CreateCompatibleDC(dc);
+		bmp = (HBITMAP)LoadImage(NULL, L"img\\ground1.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+		if (bmp == NULL) {
+			swprintf_s(string22, L"ERRO: %d", GetLastError());
+			GetLastError();
+			MessageBox(NULL, string22, _T("Janela de testes!! "), NULL);
+		}
+		SelectObject(dc2, bmp);
 		break;
 
 	case WM_KEYDOWN:
 		if (wParam == 0x32 || wParam == VK_NUMPAD2) {
-			MessageBox(NULL, _T("Tecla 2"), _T("Janela de testes!! "), NULL);
+			//MessageBox(NULL, _T("Tecla 2"), _T("Janela de testes!! "), NULL);
+			MoveWindow(hWnd, 0, 0, 1920, 1080, TRUE);
 		}
 
 		if (wParam == 0x31 || wParam == VK_NUMPAD1) {
@@ -167,17 +177,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			rect1.right = LOWORD(lParam);
 			rect1.bottom = HIWORD(lParam);
 
-			InvalidateRect(hWnd, NULL, TRUE);
+			//InvalidateRect(hWnd, NULL, TRUE);
 			//Rectangle(hdc, rect1.left, rect1.top, rect1.right, rect1.bottom);
 		}
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		/*
-		//if (retang==1) {
-			Rectangle(ps.hdc, rect1.left, rect1.top, rect1.right, rect1.bottom);
-		//}
-		*/
 		dc = GetDC(hWnd);
 		dc2 = CreateCompatibleDC(dc);
 		bmp = (HBITMAP)LoadImage(NULL, L"img\\ground1.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
@@ -188,10 +194,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		}
 		SelectObject(dc2, bmp);
 		BitBlt(dc, 0, 0, 1920, 1080, dc2, 0, 0, SRCCOPY);
-		EndPaint(hWnd, &ps);
+		DeleteDC(dc2);
+		DeleteObject(bmp);
 		CloseHandle(dc);
 		CloseHandle(dc2);
 		CloseHandle(bmp);
+		*/
+		BitBlt(dc, 0, 0, 1920, 1080, dc2, 0, 0, SRCCOPY);
+		EndPaint(hWnd, &ps);
 		break;
 		
 
@@ -252,6 +262,9 @@ BOOL CALLBACK DeleteItemProc(HWND hwndDlg,UINT message,WPARAM wParam,LPARAM lPar
 	PAINTSTRUCT ps;
 	HDC hdc;
 	HBITMAP bmp;
+	HWND hwinmain=NULL;
+	TCHAR string1[1024];
+	TCHAR string2[1024];
 	switch (message){
 	case WM_INITDIALOG:
 		bmp = (HBITMAP)LoadImage(NULL, L"img\\teste.bmp", IMAGE_BITMAP, 100, 80, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
@@ -270,8 +283,17 @@ BOOL CALLBACK DeleteItemProc(HWND hwndDlg,UINT message,WPARAM wParam,LPARAM lPar
 			EndDialog(hwndDlg, LOWORD(wParam));
 		if (LOWORD(wParam) == IDC_GET)
 			MessageBox(NULL, _T("Botao GET"), _T("Janela de testes!! "), NULL);
-		if (LOWORD(wParam) == IDC_SET)
-			MessageBox(NULL, _T("Botao SET"), _T("Janela de testes!! "), NULL);
+		if (LOWORD(wParam) == IDC_SET) {
+			//MessageBox(NULL, _T("Botao SET"), _T("Janela de testes!! "), NULL);
+			HWND editcontrolx = GetDlgItem(hwndDlg, IDC_EDIT4);
+			HWND editcontroly = GetDlgItem(hwndDlg, IDC_EDIT3);
+			GetWindowText(editcontrolx,string1,1024);
+			GetWindowText(editcontroly, string2, 1024);
+			hwinmain = GetWindow(hwndDlg, GW_OWNER);
+			int x = _wtoi(string1);
+			int y = _wtoi(string2);
+			MoveWindow(hwinmain, 0, 0, x, y, TRUE);
+		}
 		break;
 	case WM_CLOSE:
 		EndDialog(hwndDlg, LOWORD(wParam));
