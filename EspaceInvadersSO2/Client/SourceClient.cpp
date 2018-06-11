@@ -107,8 +107,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	HDC hdc;
 	TCHAR string[] = _T("1 -> Iniciar names pipes");
 	WCHAR string2[] = _T("2 -> sair");
-	//TCHAR string2[1024];
-	//DWORD xPos, yPos;
+	HBITMAP bmp;
+	HDC dc,dc2;
+	TCHAR string22[1024];
 
 	switch (message)
 	{
@@ -129,6 +130,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		break;
 	case WM_CREATE:
 		CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
+		break;
+
 	case WM_KEYDOWN:
 		if (wParam == 0x32 || wParam == VK_NUMPAD2) {
 			MessageBox(NULL, _T("Tecla 2"), _T("Janela de testes!! "), NULL);
@@ -170,18 +173,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
+		/*
 		//if (retang==1) {
 			Rectangle(ps.hdc, rect1.left, rect1.top, rect1.right, rect1.bottom);
 		//}
-		// Here your application is laid out.  
-		// For this introduction, we just print out "Hello, World!"  
-		// in the top left corner.  
-		TextOut(hdc,45, 20,string, _tcslen(string));
-		TextOut(hdc, 45, 40, string2, _tcslen(string2));
-		// End application-specific layout section.  
-
+		*/
+		dc = GetDC(hWnd);
+		dc2 = CreateCompatibleDC(dc);
+		bmp = (HBITMAP)LoadImage(NULL, L"img\\ground1.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+		if (bmp == NULL) {
+			swprintf_s(string22,L"ERRO: %d",GetLastError());
+			GetLastError();
+			MessageBox(NULL, string22, _T("Janela de testes!! "), NULL);
+		}
+		SelectObject(dc2, bmp);
+		BitBlt(dc, 0, 0, 1920, 1080, dc2, 0, 0, SRCCOPY);
 		EndPaint(hWnd, &ps);
+		CloseHandle(dc);
+		CloseHandle(dc2);
+		CloseHandle(bmp);
 		break;
+		
 
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -239,10 +251,18 @@ DWORD WINAPI thread1(LPVOID param) {
 BOOL CALLBACK DeleteItemProc(HWND hwndDlg,UINT message,WPARAM wParam,LPARAM lParam){
 	PAINTSTRUCT ps;
 	HDC hdc;
-	WCHAR string[] = {TEXT("MSG Janela de Dialogo finalmente a funcionar!")};
+	HBITMAP bmp;
 	switch (message){
+	case WM_INITDIALOG:
+		bmp = (HBITMAP)LoadImage(NULL, L"img\\teste.bmp", IMAGE_BITMAP, 100, 80, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+		if (bmp == NULL) {
+			MessageBox(NULL, _T("Erro ao carregar imagem"), _T("Janela de testes!! "), NULL);
+		}
+		SendDlgItemMessage(hwndDlg, IDC_STATIC69, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)bmp);
+		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hwndDlg, &ps);
+
 		EndPaint(hwndDlg, &ps);
 		break;
 	case WM_COMMAND:

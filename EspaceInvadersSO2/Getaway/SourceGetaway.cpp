@@ -285,23 +285,14 @@ obj * mapeamento() {
 	HANDLE partilha;
 	obj *ponteiro;
 
-	partilha = CreateFileMapping(INVALID_HANDLE_VALUE,
-		NULL,
-		PAGE_READWRITE,
-		0,
-		sizeof(obj) * 300,
-		syNome);
+	partilha = CreateFileMapping(INVALID_HANDLE_VALUE,NULL,PAGE_READWRITE,0,sizeof(obj) * 300,syNome);
 
 	if (partilha == NULL) {
 		_tprintf(TEXT("Nao foi possifel criar o mapeamento no systema, problemas de permissao ERRO ""5"" (%d).\n"), GetLastError());
 		return NULL;
 	}
 
-	ponteiro = (obj *)MapViewOfFile(partilha,
-		FILE_MAP_ALL_ACCESS,
-		0,
-		0,
-		sizeof(obj) * 300);
+	ponteiro = (obj *)MapViewOfFile(partilha,FILE_MAP_ALL_ACCESS,0,0,sizeof(obj) * 300);
 
 	if (ponteiro == NULL)
 		_tprintf(TEXT("Nao foi possivel fazer o mapeamento do vector no espaco mapeado ERRO (%d)\n"), GetLastError());
