@@ -335,17 +335,24 @@ DWORD WINAPI TrataClientes(LPVOID param) {
 	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
 	HANDLE hPipeMsgOut;
 	HANDLE hPipeObjOut;
+	TCHAR string1[1024];
 	msg data;
+	obj temp;
+	obj *mapa;
 	DWORD n;
 	int *e;
-	int i;
+	int i,in;
 	e = (int *)param;
 	i = *e;
 	ReleaseSemaphore(semaforo1, 1, NULL);
 
+	mapa = mapeamento();
+
 	ReadFile(ArrayHandles[i],&data,sizeof(msg),&n,NULL);
 	wprintf_s(TEXT("A tratar Cliente Numero:%d   ----> %s \n"),i,data.aux8);
-	
+
+	swprintf_s(string1, L"%sobj", data.aux8);
+
 	if (!WaitNamedPipe(data.aux8, NMPWAIT_WAIT_FOREVER)) {
 		wprintf_s(TEXT("Pipe do cliente nao encontrado"));
 	}
@@ -358,6 +365,17 @@ DWORD WINAPI TrataClientes(LPVOID param) {
 	swprintf_s(data.aux8, TEXT("Conectado o indice do handle deste process no getaway é %d"),i);
 	WriteFile(hPipeMsgOut, &data, sizeof(msg), &n, NULL);
 
+	//*******************
+	Sleep(500);
+	if (!WaitNamedPipe(string1, NMPWAIT_WAIT_FOREVER)) {
+		wprintf_s(TEXT("Pipe do cliente OBJ nao encontrado"));
+	}
+
+	hPipeObjOut = CreateFile(string1, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hPipeObjOut == NULL) {
+		wprintf_s(TEXT("ERROR!  (CreateFile)"));
+	}
+	
 	while (1) {
 		if (ReadFile(ArrayHandles[i], &data, sizeof(msg), &n, NULL) == 0) {
 			printf_s("deu merda e nao li nada! vou terminar\n");
@@ -367,6 +385,16 @@ DWORD WINAPI TrataClientes(LPVOID param) {
 		case 512:
 			swprintf_s(data.aux6, TEXT("(V2.0)Conectado o indice do handle deste process no getaway é %d"), i);
 			WriteFile(hPipeMsgOut, &data, sizeof(msg), &n, NULL);
+			break;
+		case 1: // pedido de mapa
+			wprintf(L"\nEntrou no modo envia mapa!\n");
+			temp.tipo = 1000;
+			WriteFile(hPipeObjOut, &temp, sizeof(obj), &n, NULL);
+			for (in = 0; in < 300 ;in++) {
+				WriteFile(hPipeObjOut, &mapa[in], sizeof(obj), &n, NULL);
+			}
+			temp.tipo = 2000;
+			WriteFile(hPipeObjOut, &temp, sizeof(obj), &n, NULL);
 			break;
 		default:
 			break;

@@ -156,8 +156,19 @@ DWORD WINAPI criaojogo(LPVOID lparam) {
 	obj * objectos = mapeamento();
 	
 	int i;
-	for (i = 0;i < 30;i++) {
-		criaobj(objectos, data.aux1, data.aux2, data.aux3, data.aux4, data.aux5,data.aux6,data.aux7,data.aux8);
+	data.aux2 = -50;
+	for (i = 0;i < 36;i++) {
+		//criaobj(objectos, data.aux1, data.aux2+=20, data.aux3+=20, data.aux4, data.aux5,data.aux6,data.aux7,data.aux8);
+		if(i<12)
+			criaobj(objectos, data.aux1, data.aux2 += 100, 30, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
+		if (i == 12 || i == 24 || i == 36)
+			data.aux2 = -50;
+		if (i >= 12 && i<24)
+			criaobj(objectos, data.aux1, data.aux2 += 100, 130, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
+		if (i >= 24 && i<36)
+			criaobj(objectos, data.aux1, data.aux2 += 100, 230, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
+		if (i >= 36)
+			criaobj(objectos, data.aux1, data.aux2 += 100, 330, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
 	}
 	wprintf(TEXT("String1:%s\nString2:%s\nString3:%s\n"),data.aux6, data.aux7, data.aux8);
 
