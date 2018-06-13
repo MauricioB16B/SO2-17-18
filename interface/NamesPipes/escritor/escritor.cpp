@@ -16,6 +16,7 @@ TCHAR buf[256];
 
 
 DWORD WINAPI RecebeCliente(LPVOID param);
+DWORD WINAPI TrataCliente(LPVOID par);
 
 typedef struct {
 
@@ -27,9 +28,16 @@ pipeBroadcast arrayHandles[10];
 
 int _tmain(int argc, LPTSTR argv[]) {
 
-	DWORD n;
+	
 	int i;
-	HANDLE T1,hPipe;
+	HANDLE T1,hPipe, IOReady;
+	DWORD n;
+	OVERLAPPED Ov;
+	BOOL ret;
+
+
+
+	IOReady = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 	
 
@@ -38,7 +46,7 @@ int _tmain(int argc, LPTSTR argv[]) {
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
 
-	//Thread1
+	
 
 	T1 = CreateThread(NULL, 0, RecebeCliente, NULL, init, NULL);
 	if (T1 == NULL)
@@ -54,15 +62,24 @@ int _tmain(int argc, LPTSTR argv[]) {
 		for (i = 0;i < 10;i++) {
 			if (arrayHandles[i].pipe != INVALID_HANDLE_VALUE) {
 
-				if (!WriteFile(arrayHandles[i].pipe, buf, _tcslen(buf) * sizeof(TCHAR), &n, NULL)) {
-					_tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
+				ZeroMemory(&Ov, sizeof(Ov));
+				ResetEvent(IOReady);
+				Ov.hEvent = IOReady;
+
+				WriteFile(arrayHandles[i].pipe, buf, _tcslen(buf) * sizeof(TCHAR), &n, &Ov);
+				WaitForSingleObject(IOReady,INFINITE);
+				ret = GetOverlappedResult(arrayHandles[i].pipe, &Ov, &n, FALSE);
+				if (!ret || !n) {
+					_tprintf(TEXT("Deu erro"));
 					exit(-1);
 				}
+				
 			}
-			_tprintf(TEXT("[ESCRITOR] Enviei %d bytes ao leitor...(WriteFile)\n"), n);
+			
 
 		}
 	} while (_tcscmp(buf, TEXT("fim")));
+	CloseHandle(IOReady);
 	
 
 		init = 0;
@@ -84,10 +101,6 @@ int _tmain(int argc, LPTSTR argv[]) {
 	}
 
 	
-
-
-	
-
 DWORD WINAPI RecebeCliente(LPVOID param) {
 
 	HANDLE hPipe;
@@ -100,7 +113,7 @@ DWORD WINAPI RecebeCliente(LPVOID param) {
 		_tprintf(TEXT("[ESCRITOR] Criar uma cópia do pipe '%s' ... (CreateNamedPipe)\n"),
 			PIPE_NAME);
 
-		hPipe = CreateNamedPipe(PIPE_NAME, PIPE_ACCESS_OUTBOUND, PIPE_WAIT |
+		hPipe = CreateNamedPipe(PIPE_NAME, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED, PIPE_WAIT |
 			PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, 10, sizeof(buf), sizeof(buf), 1000, NULL);
 
 		if (hPipe == INVALID_HANDLE_VALUE) {
@@ -114,16 +127,50 @@ DWORD WINAPI RecebeCliente(LPVOID param) {
 			_tprintf(TEXT("[ERRO] Ligação ao leitor! (ConnectNamedPipe\n"));
 			exit(-1);
 		}
+		//criar um mutex para aceder a tabela de handles
 		arrayHandles[i].pipe = hPipe;
 		i++;
 
-
-
-
-
+		// LANÇAR THREAD PARA TRATAR CLIENTE (FAZER- GUARDAR HANDLES)
+		CreateThread(NULL, 0, TrataCliente, (LPVOID) hPipe, init, NULL);
+		
 
 
 	}
 	return 0;
 
+}
+
+
+DWORD WINAPI TrataCliente(LPVOID par) {
+
+	HANDLE hPipe = (HANDLE)par;
+	HANDLE IOReady;
+	DWORD n;
+	BOOL ret;
+
+	OVERLAPPED Ov;
+
+
+
+	IOReady = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+	while (1) {
+		ZeroMemory(&Ov, sizeof(Ov));
+		ResetEvent(IOReady);
+		Ov.hEvent = IOReady;
+
+		ReadFile(hPipe, buf, sizeof(buf), &n, &Ov);
+		WaitForSingleObject(IOReady, INFINITE);
+		ret = GetOverlappedResult(hPipe, &Ov, &n, FALSE);
+		if (!ret || !n) {
+			_tprintf(TEXT("Deu erro"));
+			exit(-1);
+		}
+		_tprintf(TEXT("Recebi %d bytes : '%s' (Read file) \n"), n, buf);
+
+
+		CloseHandle(IOReady);
+		return 0;
+	}
 }

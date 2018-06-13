@@ -35,7 +35,7 @@ typedef struct {
 }msg;
 typedef struct {
 
-	msg dados[Buffers];
+	msg dados[100];
 	int iEscrita;
 	int iLeitura;
 

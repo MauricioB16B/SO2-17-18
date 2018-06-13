@@ -1,0 +1,24 @@
+﻿  snake_server.cpp
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_dll.h(137): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_dll.h(141): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_dll.h(142): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_dll.h(143): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_dll.h(144): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\server\server.h(14): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_server.cpp(143): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_server.cpp(144): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_server.cpp(147): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_server.cpp(243): warning C4474: 'wprintf' : too many arguments passed for format string
+  c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_server.cpp(243): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_server.cpp(342): warning C4553: '==': operator has no effect; did you intend '='?
+  Algorithms.cpp
+  Generating Code...
+c:\users\rafa\source\repos\so2_snake_trabalho\server\snake_server.cpp(739): warning C4715: 'invertKey': not all control paths return a value
+snake_server.obj : error LNK2019: unresolved external symbol serverCreateSM referenced in function wmain
+snake_server.obj : error LNK2019: unresolved external symbol closeSM referenced in function wmain
+snake_server.obj : error LNK2019: unresolved external symbol retrieveConfigSM referenced in function "int __cdecl gameConfig(void)" (?gameConfig@@YAHXZ)
+snake_server.obj : error LNK2019: unresolved external symbol updateAcceptConfigSM referenced in function "int __cdecl gameConfig(void)" (?gameConfig@@YAHXZ)
+snake_server.obj : error LNK2019: unresolved external symbol retrieveClientInputSM referenced in function "unsigned long __cdecl recvFromCli(void * *)" (?recvFromCli@@YAKPEAPEAX@Z)
+snake_server.obj : error LNK2019: unresolved external symbol updateRenderSM referenced in function "int __cdecl ConsoleHandlerRoutine(unsigned long)" (?ConsoleHandlerRoutine@@YAHK@Z)
+DLL.lib : warning LNK4272: library machine type 'X86' conflicts with target machine type 'x64'
+C:\Users\rafa\Source\Repos\SO2_snake_trabalho\x64\Debug\server.exe : fatal error LNK1120: 6 unresolved externals

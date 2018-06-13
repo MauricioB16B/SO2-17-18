@@ -1,0 +1,10 @@
+﻿  Algorithms.cpp
+  snake_server.cpp
+snake_server.cpp(509): warning C4101: 'sum': unreferenced local variable
+snake_server.cpp(718): warning C4474: 'wprintf' : too many arguments passed for format string
+  snake_server.cpp(718): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
+  Generating code
+  All 47 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  server.vcxproj -> E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Release\server.exe
+  server.vcxproj -> E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Release\server.pdb (Full PDB)

@@ -1,0 +1,38 @@
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppClean.targets(76,5): warning : Access to the path 'e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\debug\dll.dll' is denied.
+  snake_dll.cpp
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(15): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(15): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(61): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(61): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(70): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(70): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(80): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(80): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(92): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(92): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(104): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(104): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(117): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(117): warning C4129: 'M': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(279): warning C4477: 'wprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'StateInfo'
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(286): warning C4474: 'wprintf' : too many arguments passed for format string
+  e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(286): note: placeholders and their parameters expect 0 variadic arguments, but 2 were provided
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(291): warning C4474: 'wprintf' : too many arguments passed for format string
+  e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(291): note: placeholders and their parameters expect 0 variadic arguments, but 2 were provided
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(464): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(464): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(498): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(498): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(506): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(506): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(515): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(515): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(526): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(526): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(536): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(536): warning C4129: 'S': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(547): warning C4129: 's': unrecognized character escape sequence
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\dll\snake_dll.cpp(547): warning C4129: 'M': unrecognized character escape sequence
+     Creating library E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Debug\DLL.lib and object E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Debug\DLL.exp
+  DLL.vcxproj -> E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Debug\DLL.dll
+  DLL.vcxproj -> E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Debug\DLL.pdb (Full PDB)

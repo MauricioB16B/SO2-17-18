@@ -36,12 +36,12 @@ typedef struct obj {
 }obj;
 
 // Global variables
+HWND handleWindowMain;
 HANDLE hpipe, hpipe2, hpipe3;
-RECT rect1;
-int retang = 0;
 HBITMAP bmp;
 HDC dc, dc2;
 obj mapa[300];
+int primeiravez = 0;
 // The main window class nome.
 
 static TCHAR szWindowClass[] = _T("win32app");
@@ -56,6 +56,8 @@ DWORD WINAPI thread1(LPVOID param);
 DWORD WINAPI thread2(LPVOID param);
 
 DWORD WINAPI thread3(LPVOID param);
+
+void UpdateDc();
 
 BOOL CALLBACK DeleteItemProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -107,6 +109,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 	// nCmdShow: the fourth parameter from WinMain  
 	ShowWindow(hWnd,nCmdShow);
 	UpdateWindow(hWnd);
+	handleWindowMain = hWnd;
 
 	// Main message loop:  
 	MSG msg;
@@ -142,17 +145,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			DialogBox(NULL, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, (DLGPROC)DeleteItemProc);
 			break;
 		case ID_FILE_NOVOJOGO:
-			CreateThread(NULL, 0, thread2, (LPVOID)&hWnd, 0, NULL);
+			if (primeiravez == 0) {
+				CreateThread(NULL, 0, thread3, (LPVOID)&hWnd, 0, NULL);
+			}
+			data.aux1 = 1;
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
 			break;
 		default:
 			break;
 		}
 		break;
 	case WM_CREATE:
-		mapa[2].x = 100;
-		mapa[2].y = 100;
 		CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
-		CreateThread(NULL, 0, thread3, (LPVOID)NULL, 0, NULL);
+		//****************************************************************
 		dc = GetDC(hWnd);
 		dc2 = CreateCompatibleDC(dc);
 		bmp = (HBITMAP)LoadImage(NULL, L"img\\ground1.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
@@ -162,6 +167,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			MessageBox(NULL, string22, _T("Janela de testes!! "), NULL);
 		}
 		SelectObject(dc2, bmp);
+		//***************************************************************
 		break;
 
 	case WM_KEYDOWN:
@@ -169,7 +175,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			mapa[2].x-=3;
 			CreateThread(NULL, 0, thread2, (LPVOID)&hWnd, 0, NULL);
 		}
-
 		if ( wParam == VK_RIGHT) {
 			mapa[2].x+=3;
 			CreateThread(NULL, 0, thread2, (LPVOID)&hWnd, 0, NULL);
@@ -189,8 +194,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			MessageBox(NULL, data.aux6, _T(" sucess!! "), MB_ICONASTERISK | MB_OK);
 		}
 		if (wParam == VK_NUMPAD5) {
-			data.aux1 = 1;
-			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
 		}
 		if (wParam == VK_NUMPAD6) {
 			for (i = 0;i<300;i++) {
@@ -201,52 +204,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		}
 		break;
 	case WM_LBUTTONDOWN:
-		//MessageBox(NULL, _T("Cenas maradas"), _T("Janela de testes!! "), NULL);
-		rect1.left = LOWORD(lParam);
-		rect1.top = HIWORD(lParam);
-		retang = 1;
-		
-		//swprintf_s(string2, 1024,TEXT("x=:%d\ny=:%d"),xPos,yPos);
-		//MessageBox(NULL, string2, _T("Janela de testes!! "), NULL);
 		break;
 
 	case WM_LBUTTONUP:
-		rect1.right = LOWORD(lParam);
-		rect1.bottom = HIWORD(lParam);
-		retang = 0;
-		UpdateWindow(hWnd);
 		break;
 
 	case WM_MOUSEMOVE:
-		if (retang == 1) {
-			hdc=GetDC(hWnd);
-			rect1.right = LOWORD(lParam);
-			rect1.bottom = HIWORD(lParam);
-
-			//InvalidateRect(hWnd, NULL, TRUE);
-			//Rectangle(hdc, rect1.left, rect1.top, rect1.right, rect1.bottom);
-		}
 		break;
 	case WM_PAINT:
+
 		hdc = BeginPaint(hWnd, &ps);
-		/*
-		dc = GetDC(hWnd);
-		dc2 = CreateCompatibleDC(dc);
-		bmp = (HBITMAP)LoadImage(NULL, L"img\\ground1.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
-		if (bmp == NULL) {
-			swprintf_s(string22,L"ERRO: %d",GetLastError());
-			GetLastError();
-			MessageBox(NULL, string22, _T("Janela de testes!! "), NULL);
-		}
-		SelectObject(dc2, bmp);
+
 		BitBlt(dc, 0, 0, 1920, 1080, dc2, 0, 0, SRCCOPY);
-		DeleteDC(dc2);
-		DeleteObject(bmp);
-		CloseHandle(dc);
-		CloseHandle(dc2);
-		CloseHandle(bmp);
-		*/
-		BitBlt(dc, 0, 0, 1920, 1080, dc2, 0, 0, SRCCOPY);
+
 		EndPaint(hWnd, &ps);
 		break;
 		
@@ -265,11 +235,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
 DWORD WINAPI thread1(LPVOID param) {
 	Sleep(500);
-	msg data,dataIn;
-	DWORD n;
+	msg data , dataIn;
+	TCHAR string[1024];
 	TCHAR NomePipeInMsg[1024];
 	TCHAR NomePipeInObj[1024];
-	TCHAR string[1024];
 	swprintf_s(NomePipeInMsg, TEXT("\\\\.\\pipe\\%d"), GetCurrentProcessId());
 	swprintf_s(NomePipeInObj, TEXT("\\\\.\\pipe\\%dobj"), GetCurrentProcessId());
 
@@ -284,7 +253,7 @@ DWORD WINAPI thread1(LPVOID param) {
 		return 0;
 	}
 	wcscpy_s(data.aux8, NomePipeInMsg);
-	if (!WriteFile(hpipe,&data,sizeof(msg),&n,NULL)) {
+	if (!WriteFile(hpipe,&data,sizeof(msg),NULL,NULL)) {
 		MessageBox(NULL, _T("EROO Nao foi possivel escrever no Pipe"), _T(" Comunications Error "), MB_ICONERROR | MB_OK);
 	}
 
@@ -297,10 +266,6 @@ DWORD WINAPI thread1(LPVOID param) {
 		MessageBox(NULL, _T("EROO Ligaçao ao Getaway! (msg) (ConnectNamedPipe)"), _T(" Comunications Error "), MB_ICONERROR | MB_OK);
 	}
 
-	ReadFile(hpipe2, &dataIn, sizeof(msg), &n, NULL);
-	swprintf_s(string, TEXT("%s"), dataIn.aux8);
-	//MessageBox(NULL, string, _T(" sucess!! "), MB_ICONASTERISK | MB_OK);
-
 	//*************
 
 	hpipe3 = CreateNamedPipe(NomePipeInObj, PIPE_ACCESS_INBOUND, PIPE_WAIT | PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, PIPE_UNLIMITED_INSTANCES, sizeof(obj), sizeof(obj), 1000, NULL);
@@ -312,7 +277,7 @@ DWORD WINAPI thread1(LPVOID param) {
 		MessageBox(NULL, _T("EROO Ligaçao ao Getaway! (obj)(ConnectNamedPipe)"), _T(" Comunications Error "), MB_ICONERROR | MB_OK);
 	}
 
-	MessageBox(NULL, L"OBJ LIGADO!!!", _T(" sucess!! "), MB_ICONASTERISK | MB_OK);
+	MessageBox(NULL, L"Tudo LIGADO!!!", _T(" sucess!! "), MB_ICONASTERISK | MB_OK);
 
 	return 0;
 }
@@ -324,14 +289,7 @@ DWORD WINAPI thread2(LPVOID param) {
 	HDC dc2N;
 	hWndp = (HWND *)param;
 	hWnd = *hWndp;
-	//mapa[2].x = 100;
-	//mapa[2].y = 100;
-	mapa[2].tamx = 30;
-	mapa[2].tamy = 30;
-	mapa[2].tipo = 1;
-	
-	
-	//dcN = GetDC(hWnd);
+
 	dc2N = CreateCompatibleDC(dc);
 	bmpN = (HBITMAP)LoadImage(NULL, L"img\\teste512.bmp", IMAGE_BITMAP, 60, 55, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
 
@@ -363,11 +321,12 @@ DWORD WINAPI thread3(LPVOID param) {
 		if (objecto.tipo == 1000) {//para saber se é o inicio
 			for (i = 0;i < 300;i++) {
 				ReadFile(hpipe3, &objecto, sizeof(obj), &n, NULL);
-				mapa[i] = objecto;
+				mapa[i] = objecto;//mutex mapa
 				if (objecto.tipo == 2000)//para saber se é o fim
 					i = 300;
 			}
 		}
+		UpdateDc();
 	}
 	
 	return 0;
@@ -415,4 +374,29 @@ BOOL CALLBACK DeleteItemProc(HWND hwndDlg,UINT message,WPARAM wParam,LPARAM lPar
 		EndDialog(hwndDlg, LOWORD(wParam));
 		break;
 	}return FALSE;		
+}
+
+void UpdateDc() {
+	HBITMAP bmpN, bmpBack;
+	HDC dc2N;
+
+	dc2N = CreateCompatibleDC(dc);
+	bmpN = (HBITMAP)LoadImage(NULL, L"img\\teste512.bmp", IMAGE_BITMAP, 60, 55, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+
+	if (bmpN == NULL) {
+		//swprintf_s(string22, L"ERRO: %d", GetLastError());
+		GetLastError();
+		MessageBox(NULL, L"erro na imagem", _T("Janela de testes!! "), NULL);
+	}
+	bmpBack = (HBITMAP)LoadImage(NULL, L"img\\ground1.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+	SelectObject(dc2N, bmpBack);
+	BitBlt(dc2, 0, 0, 1920, 1080, dc2N, 0, 0, SRCCOPY);
+
+	for (int i = 0;i<300;i++) {
+		if (mapa[i].tipo != NULL) {
+			SelectObject(dc2N, bmpN);
+			BitBlt(dc2, mapa[i].x, mapa[i].y, 1920, 1080, dc2N, 0, 0, SRCCOPY);
+		}
+	}
+	InvalidateRect(handleWindowMain, NULL, TRUE);
 }

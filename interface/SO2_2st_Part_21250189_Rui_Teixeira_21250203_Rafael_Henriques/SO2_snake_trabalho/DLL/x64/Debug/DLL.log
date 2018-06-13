@@ -1,0 +1,13 @@
+﻿  snake_dll.cpp
+c:\users\rafa\source\repos\so2_snake_trabalho\dll\snake_dll.h(138): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\dll\snake_dll.h(142): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\dll\snake_dll.h(143): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\dll\snake_dll.h(144): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\dll\snake_dll.h(145): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\dll\snake_dll.h(161): warning C4005: 'DLL_EXPORTS': macro redefinition
+  c:\users\rafa\source\repos\so2_snake_trabalho\dll\snake_dll.h(161): note: command-line arguments:  see previous definition of 'DLL_EXPORTS'
+c:\users\rafa\source\repos\so2_snake_trabalho\dll\snake_dll.cpp(161): warning C4700: uninitialized local variable 'temp' used
+c:\users\rafa\source\repos\so2_snake_trabalho\dll\snake_dll.cpp(430): warning C4715: 'getRenderNP': not all control paths return a value
+     Creating library C:\Users\rafa\Source\Repos\SO2_snake_trabalho\x64\Debug\DLL.lib and object C:\Users\rafa\Source\Repos\SO2_snake_trabalho\x64\Debug\DLL.exp
+  DLL.vcxproj -> C:\Users\rafa\Source\Repos\SO2_snake_trabalho\x64\Debug\DLL.dll
+  DLL.vcxproj -> C:\Users\rafa\Source\Repos\SO2_snake_trabalho\x64\Debug\DLL.pdb (Full PDB)

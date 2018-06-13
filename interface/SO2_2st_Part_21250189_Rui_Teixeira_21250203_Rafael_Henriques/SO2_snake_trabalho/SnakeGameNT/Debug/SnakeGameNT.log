@@ -1,0 +1,9 @@
+﻿  snake_server.cpp
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\snakegament\snake_server.cpp(509): warning C4101: 'sum': unreferenced local variable
+e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\snakegament\snake_server.cpp(718): warning C4474: 'wprintf' : too many arguments passed for format string
+  e:\so2_2st_part_21250189_rui_teixeira_21250203_rafael_henriques\so2_snake_trabalho\snakegament\snake_server.cpp(718): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
+  serviceNT.cpp
+  Algorithms.cpp
+  Generating Code...
+  SnakeGameNT.vcxproj -> E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Debug\SnakeGameNT.exe
+  SnakeGameNT.vcxproj -> E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Debug\SnakeGameNT.pdb (Full PDB)

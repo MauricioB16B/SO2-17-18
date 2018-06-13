@@ -1,0 +1,15 @@
+﻿  cliente.cpp
+c:\users\rafa\source\repos\so2_snake_trabalho\cliente\snake_dll.h(121): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\cliente\snake_dll.h(125): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\cliente\snake_dll.h(126): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\cliente\snake_dll.h(127): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\cliente\snake_dll.h(128): warning C4129: 'S': unrecognized character escape sequence
+c:\users\rafa\source\repos\so2_snake_trabalho\cliente\cliente.h(30): warning C4129: 'S': unrecognized character escape sequence
+cliente.cpp(25): warning C4101: 'hConfigWnd': unreferenced local variable
+cliente.cpp(145): warning C4101: 'ps': unreferenced local variable
+cliente.cpp(144): warning C4101: 'device': unreferenced local variable
+  Generating code
+  All 7 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  cliente.vcxproj -> C:\Users\rafa\Source\Repos\SO2_snake_trabalho\x64\Release\cliente.exe
+  cliente.vcxproj -> C:\Users\rafa\Source\Repos\SO2_snake_trabalho\x64\Release\cliente.pdb (Full PDB)

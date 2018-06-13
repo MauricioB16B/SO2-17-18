@@ -1,0 +1,40 @@
+﻿  snake_dll.cpp
+snake_dll.cpp(15): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(15): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(61): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(61): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(70): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(70): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(80): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(80): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(92): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(92): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(104): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(104): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(117): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(117): warning C4129: 'M': unrecognized character escape sequence
+snake_dll.cpp(279): warning C4477: 'wprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'StateInfo'
+snake_dll.cpp(286): warning C4474: 'wprintf' : too many arguments passed for format string
+  snake_dll.cpp(286): note: placeholders and their parameters expect 0 variadic arguments, but 2 were provided
+snake_dll.cpp(291): warning C4474: 'wprintf' : too many arguments passed for format string
+  snake_dll.cpp(291): note: placeholders and their parameters expect 0 variadic arguments, but 2 were provided
+snake_dll.cpp(464): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(464): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(498): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(498): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(506): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(506): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(515): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(515): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(526): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(526): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(536): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(536): warning C4129: 'S': unrecognized character escape sequence
+snake_dll.cpp(547): warning C4129: 's': unrecognized character escape sequence
+snake_dll.cpp(547): warning C4129: 'M': unrecognized character escape sequence
+     Creating library E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Release\DLL.lib and object E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Release\DLL.exp
+  Generating code
+  All 36 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  DLL.vcxproj -> E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Release\DLL.dll
+  DLL.vcxproj -> E:\SO2_2st_Part_21250189_Rui_Teixeira_21250203_Rafael_Henriques\SO2_snake_trabalho\Release\DLL.pdb (Full PDB)
