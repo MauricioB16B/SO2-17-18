@@ -30,30 +30,51 @@ typedef struct {
 }msg;
 typedef struct {
 
-	msg dados[100];
+	msg dados[10];
 	int iEscrita;
 	int iLeitura;
 
 }bufferinfo;
 
 #define PIPE_NAME TEXT("\\\\.\\pipe\\main")
-#define Buffers 100
+#define Buffers 10
 
 HANDLE arrayhandles[30];
 
 DWORD WINAPI thread1(LPVOID param); // thread Recebe cliente
 DWORD WINAPI thread2(LPVOID param); // thread trata cliente 1 (Cliente --> Servidor)
 DWORD WINAPI thread3(LPVOID param); // thread trata cliente 2 (Servidor --> Cliente)
+HANDLE abreEvento(TCHAR string[1024]);
 int buffercircular2(msg dados);
 obj * mapeamento();
 
 int _tmain() {
 	obj * mapa;
-	mapa = mapeamento();
-	CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
+	HANDLE mapUpdate;
+	int i,ih;
 
-	while (true){// espera por um evento e descarrega o vetor de OBJ para todos os pipes que estiverem no array de pipes
-		Sleep(1000);
+	CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
+	
+	mapUpdate = abreEvento(TEXT("MapUpdate"));
+	mapa = mapeamento();
+
+	while (true){
+		obj control;
+		control.id = 5000;
+		WaitForSingleObject(mapUpdate,INFINITE);
+		wprintf_s(L"Vou enviar mapa para o cliente\n");
+		for (ih = 0;ih < 30;ih++) {
+			if (arrayhandles[ih] != NULL) {
+				for (i = 0;i < 300;i++) {
+					if (mapa[i].id != NULL) {
+						if (!WriteFile(arrayhandles[ih], &mapa[i], sizeof(obj), NULL, NULL)) {
+							wprintf_s(L"ERRO na escrita do pipe OBJ\n");
+						}
+					}
+				}
+				WriteFile(arrayhandles[ih], &control , sizeof(obj), NULL, NULL);
+			}
+		}
 	}
 	return 0;
 }
@@ -106,6 +127,8 @@ DWORD WINAPI thread2(LPVOID param) {
 		return 0;
 	}
 	//  hWrite pronto para usar
+	
+	Sleep(100);// eu sei que nao se deve usar isto mas é provisorio so para garantir que isto corre bem
 
 	swprintf_s(string1, L"%sobj", data.aux8);
 	if (!WaitNamedPipe(string1, NMPWAIT_WAIT_FOREVER)) {
@@ -179,7 +202,6 @@ int buffercircular2(msg dados) {
 	int pos;
 	char init = 0;
 
-
 	PodeEscrever = CreateSemaphore(NULL, 0, Buffers, NomeSemaforoPodeEscrever);
 
 	PodeLer = CreateSemaphore(NULL, 0, Buffers, NomeSemaforoPodeLer);
@@ -201,7 +223,6 @@ int buffercircular2(msg dados) {
 	}
 
 	shm = (bufferinfo*)MapViewOfFile(hMemoria, FILE_MAP_WRITE, 0, 0, sizeof(bufferinfo));
-
 	if (shm == NULL) {
 		_tprintf(TEXT("[Erro]Mapeamento da memória partilhada(%d)\n"), GetLastError());
 		return -1;
@@ -213,6 +234,7 @@ int buffercircular2(msg dados) {
 		shm->iLeitura = 0;
 		ReleaseSemaphore(PodeEscrever, 10, NULL);
 	}
+	
 	for (int i = 0; i < 1; i++)
 	{
 		WaitForSingleObject(PodeEscrever, INFINITE);
@@ -224,20 +246,12 @@ int buffercircular2(msg dados) {
 		pos = shm->iEscrita;
 		shm->iEscrita = (shm->iEscrita + 1) % Buffers;
 		//Incrementar valor de IN
-
-
-		shm->dados[pos].tipo = dados.tipo;
-		shm->dados[pos].aux1 = dados.aux1;
-		shm->dados[pos].aux2 = dados.aux2;
-		shm->dados[pos].aux3 = dados.aux3;
-		shm->dados[pos].aux4 = dados.aux4;
-		shm->dados[pos].aux5 = dados.aux5;
-		wcscpy_s(shm->dados[pos].aux6, dados.aux6);
-		wcscpy_s(shm->dados[pos].aux7, dados.aux7);
-		wcscpy_s(shm->dados[pos].aux8, dados.aux8);
+		
+		shm->dados[pos] = dados;
+		
 		//_stprintf_s(shm->buff[pos], BufferSize, TEXT("Pedido %d#%02d"), GetCurrentProcessId(), i);
 		//_tprintf(TEXT("Escrever para buffer %d o valor %d \n"), pos, shm->iEscrita);
-		_tprintf(TEXT("Escrever MSG para buffer circular\n"));
+		_tprintf(TEXT("MSG roteada e enviada\n"));
 
 		ReleaseMutex(mutex);
 
@@ -271,6 +285,24 @@ obj * mapeamento() {
 		_tprintf(TEXT("Nao foi possivel fazer o mapeamento do vector no espaco mapeado ERRO (%d)\n"), GetLastError());
 
 	return ponteiro;
+}
+
+HANDLE abreEvento(TCHAR string[1024]) {
+	int i=0;
+	HANDLE hand;
+	do {
+		hand = OpenEvent(EVENT_ALL_ACCESS, FALSE, string);
+		if (hand == NULL) {
+			Sleep(5);
+		}
+		if (i==1000) {//depois de mais ou menos 5 segundoas a tentar abrir o evento (see sleep(5))
+			wprintf_s(L"Falha Catastrofica a abrir EVENTO\n");
+			return NULL;
+		}
+		i++;
+	} while (hand == NULL);
+
+	return hand;
 }
 
 

@@ -41,7 +41,7 @@ HANDLE hpipe, hpipe2, hpipe3;
 HBITMAP bmp;
 HDC dc, dc2;
 obj mapa[300];
-int primeiravez = 0;
+int primeiravez;
 // The main window class nome.
 
 static TCHAR szWindowClass[] = _T("win32app");
@@ -64,7 +64,7 @@ BOOL CALLBACK DeleteItemProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow){
 	WNDCLASSEX wcex;
-
+	primeiravez = 0;// apagar isto!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	//Definicoes da janelinha
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -139,18 +139,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			PostQuitMessage(0);
 			break;
 		case ID_FILE_SAIR:
-			CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
+			//CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
+			data.tipo = 2;
+			data.aux1 = 1501;
+			data.aux2 = 1502;
+			data.aux3 = 1503;
+			data.aux4 = 1504;
+			data.aux5 = 1505;
+			wcscpy_s(data.aux6,L"OLA 1506");
+			wcscpy_s(data.aux7, L"OLA 1507");
+			wcscpy_s(data.aux8, L"OLA 1508");
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
 			break;
 		case ID_OPCOES_DEFINICOES: 
 			DialogBox(NULL, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, (DLGPROC)DeleteItemProc);
 			break;
 		case ID_FILE_NOVOJOGO:
-			if (primeiravez == 0) {
-				CreateThread(NULL, 0, thread3, (LPVOID)&hWnd, 0, NULL);
+			data.tipo = 1;
+			data.aux6[0] = '\0';
+			data.aux7[0] = '\0';
+			data.aux8[0] = '\0';
+			if (!WriteFile(hpipe, &data, sizeof(msg), NULL, NULL)) {
+				MessageBox(NULL, L"Erro na escrita do pipe!", _T("Janela de testes!! "), NULL);
 			}
-			data.aux1 = 1;
-			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
+			else if (primeiravez == 0) {
+				CreateThread(NULL, 0, thread3, (LPVOID)&hWnd, 0, NULL);
+				primeiravez = 1;
+			}
 			break;
+
 		default:
 			break;
 		}
@@ -316,14 +333,13 @@ DWORD WINAPI thread3(LPVOID param) {
 	DWORD n;
 	obj objecto;
 	int i;
-	while (true){
-		ReadFile(hpipe3, &objecto, sizeof(obj), &n, NULL);
-		if (objecto.tipo == 1000) {//para saber se é o inicio
-			for (i = 0;i < 300;i++) {
-				ReadFile(hpipe3, &objecto, sizeof(obj), &n, NULL);
+	while (true) {
+		for (i = 0;i < 300;i++) {
+			ReadFile(hpipe3, &objecto, sizeof(obj), &n, NULL);
+			if (objecto.id == 5000) {
+				i = 300;
+			}else{
 				mapa[i] = objecto;//mutex mapa
-				if (objecto.tipo == 2000)//para saber se é o fim
-					i = 300;
 			}
 		}
 		UpdateDc();

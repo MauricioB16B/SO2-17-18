@@ -35,13 +35,14 @@ typedef struct {
 }msg;
 typedef struct {
 
-	msg dados[100];
+	msg dados[10];
 	int iEscrita;
 	int iLeitura;
 
 }bufferinfo;
 
 int objid;
+HANDLE mapUpdate;
 
 DWORD WINAPI criaojogo(LPVOID lparam);
 int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy, TCHAR *bitmap, TCHAR *nome, TCHAR *aux);
@@ -52,6 +53,7 @@ int buffercircular();
 int tratamsg(msg data);
 
 int _tmain() {     // main main main main main main main main main main main main main main main main main main main main
+	mapUpdate = CreateEvent(NULL, FALSE, FALSE, TEXT("MapUpdate"));
 	objid = 0;
 	mapeamento();
 	printf("\n	Servidor\n");
@@ -123,21 +125,28 @@ int buffercircular() {
 int tratamsg(msg data) {
 	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
 	WaitForSingleObject(semaforo1, INFINITE);
+	wprintf_s(L"MSG:\n***	tipo:%d\n	aux1:%d\n	aux2:%d\n	aux3:%d\n	aux4:%d\n	aux5:%d\n	aux6:%s\n	aux7:%s\n	aux8:%s\n***\n",data.tipo,data.aux1,data.aux2,data.aux3,data.aux4,data.aux5,data.aux6,data.aux7,data.aux8);
 	switch (data.tipo) {
 	case 1:
-		break;
-	case 2:
 		CreateThread(NULL, 0, criaojogo, (LPVOID)&data, 0, NULL);
 		break;
+	case 2:
+		ReleaseSemaphore(semaforo1, 1, NULL);
+		break;
 	case 3:
+		ReleaseSemaphore(semaforo1, 1, NULL);
 		break;
 	case 4:
+		ReleaseSemaphore(semaforo1, 1, NULL);
 		break;
 	case 5:
+		ReleaseSemaphore(semaforo1, 1, NULL);
 		break;
 	case 6:
+		ReleaseSemaphore(semaforo1, 1, NULL);
 		break;
 	default:
+		ReleaseSemaphore(semaforo1, 1, NULL);
 		break;
 	}
 	WaitForSingleObject(semaforo1, INFINITE);
@@ -147,11 +156,9 @@ int tratamsg(msg data) {
 
 DWORD WINAPI criaojogo(LPVOID lparam) {
 	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
-	msg *pdata = (msg *)lparam;
+	msg *pdata;
+	pdata = (msg *)lparam;
 	msg data = *pdata;
-	wcscpy_s(data.aux6, pdata->aux6);
-	wcscpy_s(data.aux7, pdata->aux7);
-	wcscpy_s(data.aux8, pdata->aux8);
 	ReleaseSemaphore(semaforo1, 1, NULL);
 	obj * objectos = mapeamento();
 	
@@ -170,7 +177,9 @@ DWORD WINAPI criaojogo(LPVOID lparam) {
 		if (i >= 36)
 			criaobj(objectos, data.aux1, data.aux2 += 100, 330, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
 	}
-	wprintf(TEXT("String1:%s\nString2:%s\nString3:%s\n"),data.aux6, data.aux7, data.aux8);
+
+	SetEvent(mapUpdate);//envia evento para update mapa
+	
 
 	return 0;
 }
