@@ -1,5 +1,5 @@
 ﻿  SourceClient.cpp
-c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\client\sourceclient.cpp(80): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
-c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\client\sourceclient.cpp(256): warning C4101: 'string': unreferenced local variable
-c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\client\sourceclient.cpp(255): warning C4101: 'dataIn': unreferenced local variable
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\client\sourceclient.cpp(82): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\client\sourceclient.cpp(258): warning C4101: 'string': unreferenced local variable
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\client\sourceclient.cpp(257): warning C4101: 'dataIn': unreferenced local variable
   Client.vcxproj -> C:\Users\mauri\Documents\GitHub\SO2_17-18\EspaceInvadersSO2\Debug\Client.exe

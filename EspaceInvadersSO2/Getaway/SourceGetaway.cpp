@@ -50,6 +50,7 @@ obj * mapeamento();
 
 int _tmain() {
 	obj * mapa;
+	obj FimTrasmissao;
 	HANDLE mapUpdate;
 	int i,ih;
 
@@ -57,10 +58,8 @@ int _tmain() {
 	
 	mapUpdate = abreEvento(TEXT("MapUpdate"));
 	mapa = mapeamento();
-
 	while (true){
-		obj control;
-		control.id = 5000;
+		FimTrasmissao.id = 5000;
 		WaitForSingleObject(mapUpdate,INFINITE);
 		wprintf_s(L"Vou enviar mapa para o cliente\n");
 		for (ih = 0;ih < 30;ih++) {
@@ -72,7 +71,7 @@ int _tmain() {
 						}
 					}
 				}
-				WriteFile(arrayhandles[ih], &control , sizeof(obj), NULL, NULL);
+				WriteFile(arrayhandles[ih], &FimTrasmissao, sizeof(obj), NULL, NULL);
 			}
 		}
 	}

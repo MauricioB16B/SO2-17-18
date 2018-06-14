@@ -163,19 +163,19 @@ DWORD WINAPI criaojogo(LPVOID lparam) {
 	obj * objectos = mapeamento();
 	
 	int i;
-	data.aux2 = -50;
+	data.aux2 = 0;
 	for (i = 0;i < 36;i++) {
 		//criaobj(objectos, data.aux1, data.aux2+=20, data.aux3+=20, data.aux4, data.aux5,data.aux6,data.aux7,data.aux8);
 		if(i<12)
-			criaobj(objectos, data.aux1, data.aux2 += 100, 30, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
+			criaobj(objectos, data.aux1, data.aux2 += 75, 50, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
 		if (i == 12 || i == 24 || i == 36)
-			data.aux2 = -50;
+			data.aux2 = 0;
 		if (i >= 12 && i<24)
-			criaobj(objectos, data.aux1, data.aux2 += 100, 130, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
+			criaobj(objectos, data.aux1, data.aux2 += 75, 100, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
 		if (i >= 24 && i<36)
-			criaobj(objectos, data.aux1, data.aux2 += 100, 230, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
+			criaobj(objectos, data.aux1, data.aux2 += 75, 150, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
 		if (i >= 36)
-			criaobj(objectos, data.aux1, data.aux2 += 100, 330, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
+			criaobj(objectos, data.aux1, data.aux2 += 75, 200, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
 	}
 
 	SetEvent(mapUpdate);//envia evento para update mapa
@@ -194,8 +194,8 @@ int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy,TCHAR *bi
 	objectos[i].tipo = tipo;
 	objectos[i].x = x;
 	objectos[i].y = y;
-	objectos[i].tamx = tamx;
-	objectos[i].tamy = tamy;
+	objectos[i].tamx = 50;
+	objectos[i].tamy = 50;
 	return 0;
 }
 

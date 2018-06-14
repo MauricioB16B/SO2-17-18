@@ -6,7 +6,9 @@
 #include <fcntl.h>
 #include <time.h>
 #include <tchar.h>
+#include <WinGdi.h>
 #include "resource.h"
+
 
 // Declaration of Constantes e valores
 #define PIPE_NAME TEXT("\\\\.\\pipe\\main")
@@ -397,7 +399,7 @@ void UpdateDc() {
 	HDC dc2N;
 
 	dc2N = CreateCompatibleDC(dc);
-	bmpN = (HBITMAP)LoadImage(NULL, L"img\\teste512.bmp", IMAGE_BITMAP, 60, 55, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+	bmpN = (HBITMAP)LoadImage(NULL, L"img\\teste512.bmp", IMAGE_BITMAP, 45 , 30, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
 
 	if (bmpN == NULL) {
 		//swprintf_s(string22, L"ERRO: %d", GetLastError());
@@ -411,7 +413,7 @@ void UpdateDc() {
 	for (int i = 0;i<300;i++) {
 		if (mapa[i].tipo != NULL) {
 			SelectObject(dc2N, bmpN);
-			BitBlt(dc2, mapa[i].x, mapa[i].y, 1920, 1080, dc2N, 0, 0, SRCCOPY);
+			BitBlt(dc2, mapa[i].x, mapa[i].y, 500, 500, dc2N, 0, 0, SRCCOPY);
 		}
 	}
 	InvalidateRect(handleWindowMain, NULL, TRUE);
