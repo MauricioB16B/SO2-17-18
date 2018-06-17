@@ -3,15 +3,22 @@
 #include <string.h>  
 #include <tchar.h>  
 #include "resource.h"
+#include <Commctrl.h>
+#include <Windowsx.h>
 
 static TCHAR szWindowClass[] = _T("win32app");
 
 //titulo
 static TCHAR szTitle[] = _T("Server");
-int maxx = 0;
-int maxy=0;
+typedef struct definicoes{
+	int maxx;
+	int maxy;
+	TCHAR jogador1[1024];
+	TCHAR Jogador2[1024];
+}definicoes;
 
 HINSTANCE hInst;
+definicoes definicoes;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
@@ -108,15 +115,36 @@ BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
 		TCHAR string1[1024];
 	case WM_COMMAND:
 		switch (LOWORD(wParam)){
+		case IDC_CHECK2:
+			if (HIWORD(wParam) == BN_CLICKED) {
+				if (Button_GetCheck(GetDlgItem(hwndDlg, IDC_CHECK2)) == BST_CHECKED) 
+					EnableWindow(GetDlgItem(hwndDlg, IDC_EDIT2), TRUE);
+				if (Button_GetCheck(GetDlgItem(hwndDlg, IDC_CHECK2)) == BST_UNCHECKED) 
+					EnableWindow(GetDlgItem(hwndDlg, IDC_EDIT2), FALSE);
+			}
+			break;
+		case IDC_CHECK1:
+			if (HIWORD(wParam) == BN_CLICKED) {
+				if (Button_GetCheck(GetDlgItem(hwndDlg, IDC_CHECK1)) == BST_CHECKED)
+					EnableWindow(GetDlgItem(hwndDlg, IDC_EDIT12), TRUE);
+				if (Button_GetCheck(GetDlgItem(hwndDlg, IDC_CHECK1)) == BST_UNCHECKED)
+					EnableWindow(GetDlgItem(hwndDlg, IDC_EDIT12), FALSE);
+			}	
+			break;
 		case IDCANCEL:
 			EndDialog(hwndDlg, LOWORD(wParam));
 			break;
-		case IDOK:
+		case IDOK:/*
 			GetDlgItemText(hwndDlg,IDC_EDIT10,string1,1024);
 			maxx = _wtoi(string1);
 			GetDlgItemText(hwndDlg,IDC_EDIT11,string1,1024);
 			maxy = _wtoi(string1);
-			swprintf_s(string1,L"x:%d   y:%d",maxx,maxy);
+			//GetDlgItem(hwndDlg,);
+			*/
+			definicoes.maxx = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER1), (UINT)TBM_GETPOS, (WPARAM)0, (LPARAM)0);
+			definicoes.maxy = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER2), (UINT)TBM_GETPOS, (WPARAM)0, (LPARAM)0);
+
+			swprintf_s(string1,L"x:%d   y:%d",definicoes.maxx,definicoes.maxy);
 			MessageBox(NULL,string1, _T("Janela de testes!! "), NULL);
 			EndDialog(hwndDlg, LOWORD(wParam));
 			break;
@@ -124,7 +152,25 @@ BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
 			break;
 		}
 		break;
+
+	case WM_HSCROLL:
+		swprintf_s(string1,L"%d", SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER1), (UINT)TBM_GETPOS, (WPARAM)0, (LPARAM)0));
+		SetDlgItemText(hwndDlg, IDC_EDIT13, string1);
+		swprintf_s(string1, L"%d", SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER2), (UINT)TBM_GETPOS, (WPARAM)0, (LPARAM)0));
+		SetDlgItemText(hwndDlg, IDC_EDIT14, string1);
+		break;
+
 	case WM_INITDIALOG:
+		SendDlgItemMessage(hwndDlg, IDC_SLIDER1, TBM_SETRANGE, (WPARAM)1, (LPARAM)MAKELONG(500, 1920));
+		SendDlgItemMessage(hwndDlg, IDC_SLIDER2, TBM_SETRANGE, (WPARAM)1, (LPARAM)MAKELONG(300, 1080));
+		SetDlgItemText(hwndDlg, IDC_EDIT13, L"500");
+		SetDlgItemText(hwndDlg, IDC_EDIT14, L"300");
+		SetDlgItemText(hwndDlg, IDC_EDIT3, L"a");
+		SetDlgItemText(hwndDlg, IDC_EDIT4, L"d");
+		SetDlgItemText(hwndDlg, IDC_EDIT5, L"k");
+		SetDlgItemText(hwndDlg, IDC_EDIT6, L"4");
+		SetDlgItemText(hwndDlg, IDC_EDIT7, L"6");
+		SetDlgItemText(hwndDlg, IDC_EDIT8, L"0");
 		break;
 	case WM_CLOSE:
 		EndDialog(hwndDlg, LOWORD(wParam));
