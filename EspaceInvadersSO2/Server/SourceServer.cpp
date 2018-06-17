@@ -40,11 +40,17 @@ typedef struct {
 	int iLeitura;
 
 }bufferinfo;
+typedef struct {
+	int tamx;
+	int tamy;
+	int id;
+}tipo;
 
 int objid;
 HANDLE mapUpdate;
 
 DWORD WINAPI criaojogo(LPVOID lparam);
+DWORD WINAPI criaojogo2(LPVOID lparam);
 int criaobj(obj * objectos, int tipo, int x, int y, int tamx, int tamy, TCHAR *bitmap, TCHAR *nome, TCHAR *aux);
 int listaobjectos(obj * objectos);
 int apagaobjecto(obj * objectos, int id);
@@ -54,8 +60,11 @@ int tratamsg(msg data);
 
 int _tmain() {     // main main main main main main main main main main main main main main main main main main main main
 	mapUpdate = CreateEvent(NULL, FALSE, FALSE, TEXT("MapUpdate"));
+	tipo naveg, tavep;
+	naveg.id = 1;
+	naveg.tamx = 30;
+	naveg.tamy = 30;
 	objid = 0;
-	mapeamento();
 	printf("\n	Servidor\n");
 	printf("\n	Opcoes\n\n");
 	printf("\n\n**	A Mapear zona de memoria RAM partilhada\n\n");
@@ -128,7 +137,7 @@ int tratamsg(msg data) {
 	wprintf_s(L"MSG:\n***	tipo:%d\n	aux1:%d\n	aux2:%d\n	aux3:%d\n	aux4:%d\n	aux5:%d\n	aux6:%s\n	aux7:%s\n	aux8:%s\n***\n",data.tipo,data.aux1,data.aux2,data.aux3,data.aux4,data.aux5,data.aux6,data.aux7,data.aux8);
 	switch (data.tipo) {
 	case 1:
-		CreateThread(NULL, 0, criaojogo, (LPVOID)&data, 0, NULL);
+		CreateThread(NULL, 0, criaojogo2, (LPVOID)&data, 0, NULL);
 		break;
 	case 2:
 		ReleaseSemaphore(semaforo1, 1, NULL);
@@ -161,6 +170,7 @@ DWORD WINAPI criaojogo(LPVOID lparam) {
 	msg data = *pdata;
 	ReleaseSemaphore(semaforo1, 1, NULL);
 	obj * objectos = mapeamento();
+
 	
 	int i;
 	data.aux2 = 0;
@@ -177,9 +187,25 @@ DWORD WINAPI criaojogo(LPVOID lparam) {
 		if (i >= 36)
 			criaobj(objectos, data.aux1, data.aux2 += 75, 200, data.aux4, data.aux5, data.aux6, data.aux7, data.aux8);
 	}
-
+	
 	SetEvent(mapUpdate);//envia evento para update mapa
 	
+
+	return 0;
+}
+
+DWORD WINAPI criaojogo2(LPVOID lparam) {
+	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
+	msg *pdata;
+	pdata = (msg *)lparam;
+	msg data = *pdata;
+	ReleaseSemaphore(semaforo1, 1, NULL);
+	obj * objectos = mapeamento();
+
+	
+
+	SetEvent(mapUpdate);//envia evento para update mapa
+
 
 	return 0;
 }
