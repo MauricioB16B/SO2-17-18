@@ -63,6 +63,8 @@ void UpdateDc();
 
 BOOL CALLBACK DeleteItemProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
+BOOL CALLBACK loginProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
+
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow){
 	WNDCLASSEX wcex;
@@ -142,6 +144,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			break;
 		case ID_FILE_SAIR:
 			//CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
+			
 			data.tipo = 2;
 			data.aux1 = 1501;
 			data.aux2 = 1502;
@@ -157,6 +160,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			DialogBox(NULL, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, (DLGPROC)DeleteItemProc);
 			break;
 		case ID_FILE_NOVOJOGO:
+			DialogBox(NULL, MAKEINTRESOURCE(IDD_DIALOG3), hWnd, (DLGPROC)loginProc);
+			/*
 			data.tipo = 1;
 			data.aux6[0] = '\0';
 			data.aux7[0] = '\0';
@@ -168,6 +173,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 				CreateThread(NULL, 0, thread3, (LPVOID)&hWnd, 0, NULL);
 				primeiravez = 1;
 			}
+			*/
 			break;
 
 		default:
@@ -254,8 +260,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
 DWORD WINAPI thread1(LPVOID param) {
 	Sleep(500);
-	msg data , dataIn;
-	TCHAR string[1024];
+	msg data;
 	TCHAR NomePipeInMsg[1024];
 	TCHAR NomePipeInObj[1024];
 	swprintf_s(NomePipeInMsg, TEXT("\\\\.\\pipe\\%d"), GetCurrentProcessId());
@@ -392,6 +397,43 @@ BOOL CALLBACK DeleteItemProc(HWND hwndDlg,UINT message,WPARAM wParam,LPARAM lPar
 		EndDialog(hwndDlg, LOWORD(wParam));
 		break;
 	}return FALSE;		
+}
+
+BOOL CALLBACK loginProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+	msg data;
+	switch (message){
+	case WM_COMMAND:
+		switch (LOWORD(wParam)){
+		case IDLOGIN:
+			GetDlgItemText(hwndDlg, IDC_EDIT1, data.aux6, 1024);
+			data.tipo = 1;
+			data.aux7[0] = '\0';
+			data.aux8[0] = '\0';
+			if (!WriteFile(hpipe, &data, sizeof(msg), NULL, NULL)) {
+				MessageBox(NULL, L"Erro na escrita do pipe!", _T("Janela de testes!! "), NULL);
+			}
+			ReadFile(hpipe2, &data, sizeof(msg), NULL, NULL);
+			if (data.aux1 == -1) {
+				MessageBox(NULL, data.aux6, _T("Erro"), NULL);
+			}else{
+				MessageBox(NULL, data.aux6, _T("LogIN"), NULL);
+				EndDialog(hwndDlg, LOWORD(wParam));
+			}
+			break;
+		case IDCANCEL:
+			EndDialog(hwndDlg, LOWORD(wParam));
+			break;
+		default:
+			break;
+		}
+		break;
+	case WM_CLOSE:
+		EndDialog(hwndDlg, LOWORD(wParam));
+		break;
+	default:
+		break;
+	}
+	return 0;
 }
 
 void UpdateDc() {
