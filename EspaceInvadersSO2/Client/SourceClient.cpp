@@ -49,9 +49,9 @@ HWND handleWindowMain;
 HANDLE hpipe, hpipe2, hpipe3;
 HBITMAP bmp;
 HBITMAP bmpBack;
-HDC dc, dc2;
+HDC dc, dc2, dc2N;
 obj mapa[300];
-int primeiravez;
+int primeiravez,velocidadeDir,velocidadeEsq;
 tipo tipos[20];
 // The main window class nome.
 
@@ -67,6 +67,8 @@ DWORD WINAPI thread1(LPVOID param);
 DWORD WINAPI thread2(LPVOID param);
 
 DWORD WINAPI thread3(LPVOID param);
+
+DWORD WINAPI thread4(LPVOID param);
 
 void UpdateDc();
 
@@ -173,19 +175,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			break;
 		case ID_FILE_NOVOJOGO:
 			DialogBox(NULL, MAKEINTRESOURCE(IDD_DIALOG3), hWnd, (DLGPROC)loginProc);
-			/*
-			data.tipo = 1;
-			data.aux6[0] = '\0';
-			data.aux7[0] = '\0';
-			data.aux8[0] = '\0';
-			if (!WriteFile(hpipe, &data, sizeof(msg), NULL, NULL)) {
-				MessageBox(NULL, L"Erro na escrita do pipe!", _T("Janela de testes!! "), NULL);
-			}
-			else if (primeiravez == 0) {
-				CreateThread(NULL, 0, thread3, (LPVOID)&hWnd, 0, NULL);
-				primeiravez = 1;
-			}
-			*/
 			break;
 
 		default:
@@ -207,7 +196,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		//***************************************************************
 		break;
 
-	case WM_KEYDOWN:
+	case WM_KEYDOWN:/*
 		if ( wParam == VK_LEFT) {
 			data.tipo = 2;
 			data.aux1 = 2;
@@ -221,7 +210,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
 		}
 		if ( wParam == VK_UP) {
-		}
+			data.tipo = 3;
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
+		}*/
 		if ( wParam == VK_DOWN) {
 		}
 		if ( wParam == VK_NUMPAD1) {
@@ -259,6 +250,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		break;
 	}
 
+	return 0;
+}
+
+DWORD WINAPI thread4(LPVOID param) {
+	msg data;
+	data.aux5 = GetCurrentProcessId();
+	int a = 0;
+	while (true){
+		if (GetAsyncKeyState(VK_LEFT)) {
+			a++;
+			data.tipo = 2;
+			data.aux1 = 2;
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
+			if (a < 20) {
+				Sleep(20);
+			}else{
+				Sleep(5);
+			}
+		}
+		else if (GetAsyncKeyState(VK_RIGHT)) {
+			a++;
+			data.tipo = 2;
+			data.aux1 = 1;
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
+			if (a < 20) {
+				Sleep(20);
+			}
+			else {
+				Sleep(5);
+			}
+		}
+		else{
+			a = 0;
+		}
+	}
 	return 0;
 }
 
@@ -426,6 +452,7 @@ BOOL CALLBACK loginProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam
 				loadimg();
 				CreateThread(NULL, 0, thread3, NULL, 0, NULL);
 				MessageBox(NULL, data2.aux6, _T("LogIN"), NULL);
+				CreateThread(NULL, 0, thread4, (LPVOID)NULL, 0, NULL);
 				MoveWindow(handleWindowMain, 0, 0, data2.aux2, data2.aux3, TRUE);
 
 				EndDialog(hwndDlg, LOWORD(wParam));
@@ -448,21 +475,22 @@ BOOL CALLBACK loginProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam
 }
 
 void UpdateDc() {
-	HDC dc2N;
+	int i;
+	if(dc2N == NULL)
+		dc2N = CreateCompatibleDC(dc);
 
-	dc2N = CreateCompatibleDC(dc);
 
 	SelectObject(dc2N, bmpBack);
 	BitBlt(dc2, 0, 0, 1920, 1080, dc2N, 0, 0, SRCCOPY);
 
-
-	for (int i = 0;i<300;i++) {
+	for (i = 0;i<300;i++) {
 		if (mapa[i].tipo != NULL) {
 			SelectObject(dc2N, tipos[mapa[i].tipo - 1].himg);
 			BitBlt(dc2, mapa[i].x, mapa[i].y, mapa[i].tamx, mapa[i].tamy, dc2N, 0, 0, SRCCOPY);
 		}
 	}
-	InvalidateRect(handleWindowMain, NULL, TRUE);
+	BitBlt(dc, 0, 0, 1920, 1080, dc2, 0, 0, SRCCOPY);
+	//InvalidateRect(handleWindowMain, NULL, TRUE);
 }
 
 int loaddefinicoes() {

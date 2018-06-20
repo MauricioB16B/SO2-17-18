@@ -509,7 +509,11 @@ int tratamsg(msg data) {
 		move(data);
 		break;
 	case 3:
-		ReleaseSemaphore(semaforo1, 1, NULL);
+		while (true)
+		{
+			Sleep(2000);
+			SetEvent(mapUpdate);
+		}
 		break;
 	case 4:
 		ReleaseSemaphore(semaforo1, 1, NULL);
@@ -534,16 +538,16 @@ int move(msg data) {
 	
 	if (data.aux5 == definicoes.pid1) {
 		if (data.aux1 == 1)
-			objectos[0].x = objectos[0].x + 5;
+			objectos[0].x = objectos[0].x + 10;
 		if (data.aux1 == 2)
-			objectos[0].x = objectos[0].x - 5;
+			objectos[0].x = objectos[0].x - 10;
 		SetEvent(mapUpdate);
 	}
 	if (data.aux5 == definicoes.pid2) {
 		if (data.aux1 == 1)
-			objectos[1].x = objectos[1].x + 5;
+			objectos[1].x = objectos[1].x + 10;
 		if (data.aux1 == 2)
-			objectos[1].x = objectos[1].x - 5;
+			objectos[1].x = objectos[1].x - 10;
 		SetEvent(mapUpdate);
 	}
 	return 0;
