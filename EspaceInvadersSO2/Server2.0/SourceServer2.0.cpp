@@ -85,6 +85,7 @@ HINSTANCE hInst;
 def definicoes;
 int objCounterID;
 HANDLE mapUpdate;
+HANDLE clock;
 
 int tratamsg(msg data);
 int crianave(obj objecto,int indice, obj * objectos);
@@ -100,6 +101,8 @@ int move(msg data);
 int buffercircular();
 int buffercircular2(msg dados);
 DWORD WINAPI thread1(LPVOID param);
+DWORD WINAPI thread2(LPVOID param);
+DWORD WINAPI thread3(LPVOID param);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -180,6 +183,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		break;
 	case WM_CREATE:
 		mapUpdate = CreateEvent(NULL, FALSE, FALSE, TEXT("MapUpdate"));
+		clock = CreateEvent(NULL, TRUE, FALSE, TEXT("clock"));
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
@@ -238,8 +242,8 @@ BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
 			definicoes.maxx = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER1), (UINT)TBM_GETPOS, (WPARAM)0, (LPARAM)0);
 			definicoes.maxy = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER2), (UINT)TBM_GETPOS, (WPARAM)0, (LPARAM)0);
 			
-			definicoes.naveg.tamx = 45; 
-			definicoes.naveg.tamy = 30;
+			definicoes.naveg.tamx = 65;
+			definicoes.naveg.tamy = 40;
 			definicoes.naveg.tipo = 1;
 			swprintf_s(definicoes.naveg.bitmap, L"img\\colec\\naveg.bmp"); 
 
@@ -595,8 +599,8 @@ int CriaNovoJogo(msg data) {
 			criajogador1(objectos);
 		}
 	}
-
 	Sleep(200);
+	CreateThread(NULL, 0, thread3, NULL, 0, NULL);
 	SetEvent(mapUpdate);
 	return 0;
 }
@@ -626,19 +630,67 @@ int criajogador2(obj *objectos) {
 }
 
 int crianave(obj objecto, int indice, obj * objectos) {
+	HANDLE semaforoThNave = CreateSemaphore(NULL, 1, 1, TEXT("semaforoThreadNave"));
 	objectos[indice].id = objecto.id;
 	objectos[indice].x = objecto.x;
 	objectos[indice].y = objecto.y;
 	objectos[indice].tipo = objecto.tipo;
 	objectos[indice].tamx = objecto.tamx;
 	objectos[indice].tamy = objecto.tamy;
+	WaitForSingleObject(semaforoThNave, INFINITE);
+	CreateThread(NULL, 0, thread2, (LPVOID)&objecto, 0, NULL);
+	WaitForSingleObject(semaforoThNave, INFINITE);
+	ReleaseSemaphore(semaforoThNave, 1, NULL);
+	return 0;
+}
 
+DWORD WINAPI thread2(LPVOID param) {
+	HANDLE mutex= CreateMutex(NULL, FALSE, L"mutexmapa");
+	HANDLE semaforoThNave = CreateSemaphore(NULL, 1, 1, TEXT("semaforoThreadNave"));
+	obj * pobj;
+	obj esteobjecto;
+	pobj = (obj *)param;
+	esteobjecto = *pobj;
+	obj * mapa = mapeamento();
+	ReleaseSemaphore(semaforoThNave, 1, NULL);
+	int i;
+
+	while (1) {
+		WaitForSingleObject(clock, INFINITE);
+		WaitForSingleObject(mutex, INFINITE);
+		for (i = 0;i<300;i++) {
+			if (mapa[i].id == esteobjecto.id) {
+				mapa[i].x++;
+			}
+		}
+		ReleaseMutex(mutex);
+		Sleep(50);//outro sinal para garantir que a operaçao so é feita uma vez!
+	}
+	return 0;
+}
+
+DWORD WINAPI thread3(LPVOID param) {
+	HANDLE mutex = CreateMutex(NULL, FALSE, L"mutexmapa");
+	Sleep(5000);
+	while (1) {
+		SetEvent(clock);
+		Sleep(50);
+		ResetEvent(clock);
+
+		WaitForSingleObject(mutex, INFINITE);
+		SetEvent(mapUpdate);
+		Sleep(60);//semaforo para o getaway enquanto prende o mutex no servidor
+		ReleaseMutex(mutex);
+		Sleep(100);
+	}
 	return 0;
 }
 
 int criamapa(obj * objectos) {
+	HANDLE mutex = CreateMutex(NULL, FALSE, L"mutexmapa");
 	int i,indice=2;
 	obj objec;
+	WaitForSingleObject(mutex, INFINITE);
 	while (1) {
 
 		for (i = definicoes.folgahor;i < definicoes.maxx;i++) {
@@ -647,7 +699,7 @@ int criamapa(obj * objectos) {
 			objec.x = i;
 			objec.y = definicoes.folgaver;
 			objec.tamx = definicoes.naveg.tamx;
-			objec.tamy = definicoes.naveg.tamx;
+			objec.tamy = definicoes.naveg.tamy;
 			crianave(objec, indice, objectos);
 
 			i = i + definicoes.naveg.tamx + definicoes.folgax - 1;
@@ -655,10 +707,12 @@ int criamapa(obj * objectos) {
 				i = definicoes.maxx;
 			indice++;
 		}
-		if (objectos[0].y + definicoes.naveg.tamy >= (definicoes.maxy *0.1) || indice >= 200)
+		if (objectos[0].y + definicoes.navep.tamy >= (definicoes.maxy *0.25) || indice >= 200) {
+			ReleaseMutex(mutex);
 			return 0;
+		}
 		for (i = 0;i <= indice;i++) {
-			objectos[i].y = objectos[i].y + definicoes.folgay + objectos[i].tamy;
+			objectos[i].y = objectos[i].y + definicoes.folgay + definicoes.naveg.tamy;;
 		}
 		for (i = definicoes.folgahor;i < definicoes.maxx;i++) {
 			objec.id = indice + 1;
@@ -666,7 +720,7 @@ int criamapa(obj * objectos) {
 			objec.x = i;
 			objec.y = definicoes.folgaver;
 			objec.tamx = definicoes.navep.tamx;
-			objec.tamy = definicoes.navep.tamx;
+			objec.tamy = definicoes.navep.tamy;
 			crianave(objec, indice, objectos);
 
 			i = i + definicoes.navep.tamx + definicoes.folgax - 1;
@@ -674,10 +728,12 @@ int criamapa(obj * objectos) {
 				i = definicoes.maxx;
 			indice++;
 		}
-		if (objectos[0].y + definicoes.navep.tamy >= (definicoes.maxy *0.1) || indice >= 200)
+		if (objectos[0].y + definicoes.naveg.tamy >= (definicoes.maxy *0.25) || indice >= 200) {
+			ReleaseMutex(mutex);
 			return 0;
+		}
 		for (i = 0;i <= indice;i++) {
-			objectos[i].y = objectos[i].y + definicoes.folgay + objectos[i].tamy;
+			objectos[i].y = objectos[i].y + definicoes.folgay + definicoes.naveg.tamy;
 		}
 	}
 	return 0;
