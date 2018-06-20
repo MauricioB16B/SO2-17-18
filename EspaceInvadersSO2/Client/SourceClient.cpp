@@ -48,6 +48,7 @@ typedef struct {
 HWND handleWindowMain;
 HANDLE hpipe, hpipe2, hpipe3;
 HBITMAP bmp;
+HBITMAP bmpBack;
 HDC dc, dc2;
 obj mapa[300];
 int primeiravez;
@@ -145,7 +146,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	WCHAR string2[] = _T("2 -> sair");
 	HBITMAP bmp;
 	TCHAR string22[1024];
-	int i;
 
 	switch (message)
 	{
@@ -209,35 +209,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
 	case WM_KEYDOWN:
 		if ( wParam == VK_LEFT) {
-			mapa[2].x-=3;
-			CreateThread(NULL, 0, thread2, (LPVOID)&hWnd, 0, NULL);
+			data.tipo = 2;
+			data.aux1 = 2;
+			data.aux5 = GetCurrentProcessId();
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
 		}
 		if ( wParam == VK_RIGHT) {
-			mapa[2].x+=3;
-			CreateThread(NULL, 0, thread2, (LPVOID)&hWnd, 0, NULL);
+			data.tipo = 2;
+			data.aux1 = 1;
+			data.aux5 = GetCurrentProcessId();
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
 		}
 		if ( wParam == VK_UP) {
-			mapa[2].y-=3;
-			CreateThread(NULL, 0, thread2, (LPVOID)&hWnd, 0, NULL);
 		}
 		if ( wParam == VK_DOWN) {
-			mapa[2].y+=3;
-			CreateThread(NULL, 0, thread2, (LPVOID)&hWnd, 0, NULL);
 		}
 		if ( wParam == VK_NUMPAD1) {
-			data.aux1 = 512;
-			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
-			ReadFile(hpipe2, &data, sizeof(msg), NULL, NULL);
-			MessageBox(NULL, data.aux6, _T(" sucess!! "), MB_ICONASTERISK | MB_OK);
+			
 		}
 		if (wParam == VK_NUMPAD5) {
 		}
 		if (wParam == VK_NUMPAD6) {
-			for (i = 0;i<300;i++) {
-				if (mapa[i].id != NULL) {
-					MessageBox(NULL, L"mais um!", _T(" sucess!! "), MB_ICONASTERISK | MB_OK);
-				}
-			}
 		}
 		break;
 	case WM_LBUTTONDOWN:
@@ -456,10 +448,10 @@ BOOL CALLBACK loginProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam
 }
 
 void UpdateDc() {
-	HBITMAP bmpN, bmpBack;
 	HDC dc2N;
+
 	dc2N = CreateCompatibleDC(dc);
-	bmpBack = (HBITMAP)LoadImage(NULL, L"img\\ground1.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+
 	SelectObject(dc2N, bmpBack);
 	BitBlt(dc2, 0, 0, 1920, 1080, dc2N, 0, 0, SRCCOPY);
 
@@ -490,6 +482,7 @@ int loaddefinicoes() {
 int loadimg() {
 	TCHAR str1[1024];
 	int i;
+	bmpBack = (HBITMAP)LoadImage(NULL, L"img\\ground1.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
 	for (i = 0;i <= 13;i++) {
 		tipos[i].himg = (HBITMAP)LoadImage(NULL, tipos[i].bitmap, IMAGE_BITMAP, tipos[i].tamx, tipos[i].tamy, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
 		if (tipos[i].himg == NULL) {

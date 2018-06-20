@@ -96,6 +96,7 @@ int criajogador2(obj *objectos);
 void SendDefinitions(int pid);
 obj * mapeamento();
 int CriaNovoJogo(msg data);
+int move(msg data);
 int buffercircular();
 int buffercircular2(msg dados);
 DWORD WINAPI thread1(LPVOID param);
@@ -505,7 +506,7 @@ int tratamsg(msg data) {
 		CriaNovoJogo(data);
 		break;
 	case 2:
-		ReleaseSemaphore(semaforo1, 1, NULL);
+		move(data);
 		break;
 	case 3:
 		ReleaseSemaphore(semaforo1, 1, NULL);
@@ -525,6 +526,26 @@ int tratamsg(msg data) {
 	}
 	//WaitForSingleObject(semaforo1, INFINITE);
 	ReleaseSemaphore(semaforo1, 1, NULL);
+	return 0;
+}
+
+int move(msg data) {
+	obj * objectos = mapeamento();
+	
+	if (data.aux5 == definicoes.pid1) {
+		if (data.aux1 == 1)
+			objectos[0].x = objectos[0].x + 5;
+		if (data.aux1 == 2)
+			objectos[0].x = objectos[0].x - 5;
+		SetEvent(mapUpdate);
+	}
+	if (data.aux5 == definicoes.pid2) {
+		if (data.aux1 == 1)
+			objectos[1].x = objectos[1].x + 5;
+		if (data.aux1 == 2)
+			objectos[1].x = objectos[1].x - 5;
+		SetEvent(mapUpdate);
+	}
 	return 0;
 }
 
@@ -577,33 +598,25 @@ int CriaNovoJogo(msg data) {
 }
 
 int criajogador1(obj *objectos) {
-	int i;
-	for (i = 0;i <= 300;i++) {
-		if (objectos[i].tipo == NULL) {
-			objectos[i].id = i+1;
-			objectos[i].tipo = 5;
-			objectos[i].tamx = definicoes.tjogador1.tamx;
-			objectos[i].tamy = definicoes.tjogador1.tamy;
-			objectos[i].x = definicoes.folgahor;
-			objectos[i].y = definicoes.maxy - definicoes.tjogador1.tamy - 100;
-			i = 301;
-		}
+	if (objectos[0].tipo == NULL) {
+			objectos[0].id = 1;
+			objectos[0].tipo = 5;
+			objectos[0].tamx = definicoes.tjogador1.tamx;
+			objectos[0].tamy = definicoes.tjogador1.tamy;
+			objectos[0].x = definicoes.folgahor;
+			objectos[0].y = definicoes.maxy - definicoes.tjogador1.tamy - 100;
 	}
 	return 0;
 }
 
 int criajogador2(obj *objectos) {
-	int i;
-	for (i = 0;i <= 300;i++) {
-		if (objectos[i].tipo == NULL) {
-			objectos[i].id = i + 1;
-			objectos[i].tipo = 6;
-			objectos[i].tamx = definicoes.tjogador1.tamx;
-			objectos[i].tamy = definicoes.tjogador1.tamy;
-			objectos[i].x = definicoes.maxx - definicoes.folgahor - definicoes.tjogador1.tamx;
-			objectos[i].y = definicoes.maxy - definicoes.tjogador1.tamy - 100;
-			i = 301;
-		}
+	if (objectos[1].tipo == NULL) {
+		objectos[1].id = 2;
+		objectos[1].tipo = 6;
+		objectos[1].tamx = definicoes.tjogador2.tamx;
+		objectos[1].tamy = definicoes.tjogador2.tamy;
+		objectos[1].x = definicoes.maxx - definicoes.folgahor - definicoes.tjogador2.tamx - 50;
+		objectos[1].y = definicoes.maxy - definicoes.tjogador1.tamy - 100;
 	}
 	return 0;
 }
@@ -620,7 +633,7 @@ int crianave(obj objecto, int indice, obj * objectos) {
 }
 
 int criamapa(obj * objectos) {
-	int i,indice=0;
+	int i,indice=2;
 	obj objec;
 	while (1) {
 
@@ -638,7 +651,7 @@ int criamapa(obj * objectos) {
 				i = definicoes.maxx;
 			indice++;
 		}
-		if (objectos[0].y + definicoes.naveg.tamy >= definicoes.maxy / 3 || indice >= 200)
+		if (objectos[0].y + definicoes.naveg.tamy >= (definicoes.maxy *0.1) || indice >= 200)
 			return 0;
 		for (i = 0;i <= indice;i++) {
 			objectos[i].y = objectos[i].y + definicoes.folgay + objectos[i].tamy;
@@ -657,7 +670,7 @@ int criamapa(obj * objectos) {
 				i = definicoes.maxx;
 			indice++;
 		}
-		if (objectos[0].y + definicoes.navep.tamy >= definicoes.maxy / 3 || indice >= 200)
+		if (objectos[0].y + definicoes.navep.tamy >= (definicoes.maxy *0.1) || indice >= 200)
 			return 0;
 		for (i = 0;i <= indice;i++) {
 			objectos[i].y = objectos[i].y + definicoes.folgay + objectos[i].tamy;
