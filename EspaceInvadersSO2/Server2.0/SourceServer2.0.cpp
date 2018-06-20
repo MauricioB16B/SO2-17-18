@@ -9,19 +9,6 @@
 #define BufferSize 100
 #define Buffers 10
 
-typedef struct definicoes{
-	int maxx;
-	int maxy;
-	int nnaves;
-	CHAR Tdireita;
-	CHAR Tesquerda;
-	CHAR Tdisparo;
-	CHAR Tdireita2;
-	CHAR Tesquerda2;
-	CHAR Tdisparo2;
-	TCHAR jogador1[1024];
-	TCHAR jogador2[1024];
-}def;
 typedef struct obj {
 	int id;
 	int tipo;
@@ -56,6 +43,27 @@ typedef struct {
 	int tamy;
 	int id;
 }tipo;
+typedef struct definicoes {
+	int maxx;
+	int maxy;
+	int nnaves;
+	CHAR Tdireita;
+	CHAR Tesquerda;
+	CHAR Tdisparo;
+	CHAR Tdireita2;
+	CHAR Tesquerda2;
+	CHAR Tdisparo2;
+	TCHAR jogador1[1024];
+	TCHAR jogador2[1024];
+	int pid1;
+	int pid2;
+	tipo naveg;
+	tipo navep;
+	int folgax;
+	int folgay;
+	int folgahor;
+	int folgaver;
+}def;
 
 static TCHAR szWindowClass[] = _T("win32app");
 static TCHAR szTitle[] = _T("Server");
@@ -66,14 +74,19 @@ int objCounterID;
 HANDLE mapUpdate;
 
 int tratamsg(msg data);
+int crianave(obj objecto,int indice, obj * objectos);
+int criamapa(obj * objectos);
+int criamapa1p();
+int criamapa2p();
 obj * mapeamento();
 int CriaNovoJogo(msg data);
 int buffercircular();
+int buffercircular2(msg dados);
 DWORD WINAPI thread1(LPVOID param);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
-int CALLBACK WinMain(_In_ HINSTANCE hInstance,_In_ HINSTANCE hPrevInstance,_In_ LPSTR     lpCmdLine,_In_ int       nCmdShow){
+int CALLBACK WinMain(_In_ HINSTANCE hInstance,_In_ HINSTANCE hPrevInstance,_In_ LPSTR lpCmdLine, _In_ int nCmdShow){
 	WNDCLASSEX wcex;
 
 	wcex.cbSize = sizeof(WNDCLASSEX);
@@ -148,6 +161,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			break;
 		}
 		break;
+	case WM_CREATE:
+		mapUpdate = CreateEvent(NULL, FALSE, FALSE, TEXT("MapUpdate"));
+		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		EndPaint(hWnd, &ps);
@@ -204,6 +220,16 @@ BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
 			
 			definicoes.maxx = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER1), (UINT)TBM_GETPOS, (WPARAM)0, (LPARAM)0);
 			definicoes.maxy = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER2), (UINT)TBM_GETPOS, (WPARAM)0, (LPARAM)0);
+			definicoes.naveg.tamx = 45;
+			definicoes.naveg.tamy = 30;
+			definicoes.naveg.id = 0;
+			definicoes.navep.tamx = 45;
+			definicoes.navep.tamy = 30;
+			definicoes.navep.id = 1;
+			definicoes.folgahor=100;
+			definicoes.folgaver=50;
+			definicoes.folgay=20;
+			definicoes.folgax = 20;
 
 			swprintf_s(string1,L"x:%d\ny:%d\nNnaves:%d\nJogador1:%s\nJogador2:%s",definicoes.maxx,definicoes.maxy,definicoes.nnaves,definicoes.jogador1,definicoes.jogador2);
 			MessageBox(NULL,string1, _T("Janela de testes!! "), NULL);
@@ -243,12 +269,9 @@ BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
 }
 
 DWORD WINAPI thread1(LPVOID param) {
-	mapUpdate = CreateEvent(NULL, FALSE, FALSE, TEXT("MapUpdate"));
 
 	objCounterID = 0;
-	while (1) {
 		buffercircular();
-	}
 
 	return 0;
 }
@@ -299,7 +322,6 @@ int buffercircular() {
 
 			tratamsg(shm->dados[pos]);// copia data do buffer para variavel da funcao e liberta o buffer
 			ReleaseSemaphore(PodeEscrever, 1, NULL);
-
 		}
 
 		UnmapViewOfFile(shm);
@@ -308,6 +330,86 @@ int buffercircular() {
 		CloseHandle(hMemoria);
 		CloseHandle(mutex);
 	}
+	return 0;
+}
+
+int buffercircular2(msg dados) {
+	TCHAR NomeMemoria[] = TEXT("Nome da Memória Partilhada2");
+	TCHAR NomeSemaforoPodeEscrever[] = TEXT("Semáforo Pode Escrever2");
+	TCHAR NomeSemaforoPodeLer[] = TEXT("Semáforo Pode Ler2");
+	TCHAR NomeMutexIndice[] = TEXT("MutexEscritor2");
+
+	HANDLE PodeEscrever;
+	HANDLE PodeLer;
+	HANDLE hMemoria;
+	HANDLE mutex;
+
+	bufferinfo *shm;
+	int pos;
+	char init = 0;
+
+	PodeEscrever = CreateSemaphore(NULL, 0, Buffers, NomeSemaforoPodeEscrever);
+
+	PodeLer = CreateSemaphore(NULL, 0, Buffers, NomeSemaforoPodeLer);
+
+
+	hMemoria = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(bufferinfo), NomeMemoria);
+
+
+	mutex = CreateMutex(NULL, FALSE, NomeMutexIndice);
+
+	if (PodeEscrever == NULL || PodeLer == NULL || hMemoria == NULL) {
+		_tprintf(TEXT("[Erro]Criação de objectos do Windows(%d)\n"), GetLastError());
+		return -1;
+	}
+	if (GetLastError() != ERROR_ALREADY_EXISTS) {
+
+		init = 1;
+
+	}
+
+	shm = (bufferinfo*)MapViewOfFile(hMemoria, FILE_MAP_WRITE, 0, 0, sizeof(bufferinfo));
+	if (shm == NULL) {
+		_tprintf(TEXT("[Erro]Mapeamento da memória partilhada(%d)\n"), GetLastError());
+		return -1;
+	}
+
+	if (init) {
+
+		shm->iEscrita = 0;
+		shm->iLeitura = 0;
+		ReleaseSemaphore(PodeEscrever, 10, NULL);
+	}
+
+	for (int i = 0; i < 1; i++)
+	{
+		WaitForSingleObject(PodeEscrever, INFINITE);
+
+		//METER O MUTEX PARA PROTEGER A ESCRITA -> PODE HAVER MA INFORMACAO PARA OS CLIENTES QUANDO SE LIBERTA O SEMAFORO 
+		//DE LEITURA. ESCREVE COM INDICE > primeiro...
+		WaitForSingleObject(mutex, INFINITE);
+		//ler IN par aa var local POS
+		pos = shm->iEscrita;
+		shm->iEscrita = (shm->iEscrita + 1) % Buffers;
+		//Incrementar valor de IN
+
+		shm->dados[pos] = dados;
+
+		//_stprintf_s(shm->buff[pos], BufferSize, TEXT("Pedido %d#%02d"), GetCurrentProcessId(), i);
+		//_tprintf(TEXT("Escrever para buffer %d o valor %d \n"), pos, shm->iEscrita);
+		_tprintf(TEXT("MSG roteada e enviada\n"));
+
+		ReleaseMutex(mutex);
+
+		//Sleep(1000);
+		ReleaseSemaphore(PodeLer, 1, NULL);
+	}
+
+	UnmapViewOfFile(shm);
+	CloseHandle(PodeEscrever);
+	CloseHandle(PodeLer);
+	CloseHandle(hMemoria);
+	CloseHandle(mutex);
 	return 0;
 }
 
@@ -340,27 +442,108 @@ int tratamsg(msg data) {
 		ReleaseSemaphore(semaforo1, 1, NULL);
 		break;
 	}
-	WaitForSingleObject(semaforo1, INFINITE);
+	//WaitForSingleObject(semaforo1, INFINITE);
 	ReleaseSemaphore(semaforo1, 1, NULL);
 	return 0;
 }
 
 int CriaNovoJogo(msg data) {
 	obj * objectos = mapeamento();
+	msg reply;
+	int indice = 0;
+	reply.aux5 = data.aux5;
 
-	//** no cliente -> fazer um dialog box para fazer o login
-	//espera pela conecçao cliente ou clientes
-	//envia dimensoes do mapa para o cliente atravez do buffer circular 2
-	//cria mapa com o alguritmos ja pseudofeito no papel
+	if(wcscmp(definicoes.jogador1, data.aux6)==0){
+		definicoes.pid1 = data.aux5;
+		swprintf_s(reply.aux6, L"Ola %s, vais ser o jogador 1", data.aux6);
+	}
+	else if (wcscmp(definicoes.jogador2, data.aux6)==0){
+		definicoes.pid2 = data.aux5;
+		swprintf_s(reply.aux6, L"Ola %s, vais ser o jogador 2", data.aux6);
+	}
+	else{
+		reply.aux1 = -1;
+		swprintf_s(reply.aux6,L"O jogador %s nao foi encontrado!",data.aux6);
+		buffercircular2(reply);
+		return 0;
+	}
 
-	objectos[0].id = 1;
-	objectos[0].tipo = 1;
-	objectos[0].x = 100;
-	objectos[0].y = 150;
-	objectos[0].tamx = 10;
-	objectos[0].tamy = 10;
+	reply.aux1 = 1;
+	reply.aux2 = definicoes.maxx;
+	reply.aux3 = definicoes.maxy;
+	buffercircular2(reply);
 
+	if (wcslen(definicoes.jogador2) >= 1) {
+		if (definicoes.pid1 != NULL && definicoes.pid2 != NULL) {
+			//2p
+		}
+	}
+	else {
+		if (definicoes.pid1 != NULL) {
+			criamapa(objectos);
+		}
+	}
+
+	Sleep(200);
 	SetEvent(mapUpdate);
+	return 0;
+}
+
+int crianave(obj objecto, int indice, obj * objectos) {
+	objectos[indice].id = objecto.id;
+	objectos[indice].x = objecto.x;
+	objectos[indice].y = objecto.y;
+	objectos[indice].tipo = objecto.tipo;
+	objectos[indice].tamx = objecto.tamx;
+	objectos[indice].tamy = objecto.tamy;
+
+	return 0;
+}
+
+int criamapa(obj * objectos) {
+	int i,indice=0;
+	obj objec;
+	while (1) {
+
+		for (i = definicoes.folgahor;i < definicoes.maxx;i++) {
+			objec.id = indice + 1;
+			objec.tipo = 1;
+			objec.x = i;
+			objec.y = definicoes.folgaver;
+			objec.tamx = definicoes.naveg.tamx;
+			objec.tamy = definicoes.naveg.tamx;
+			crianave(objec, indice, objectos);
+
+			i = i + definicoes.naveg.tamx + definicoes.folgax - 1;
+			if (i + definicoes.naveg.tamx + definicoes.folgax + definicoes.folgahor + 1 >= definicoes.maxx)
+				i = definicoes.maxx;
+			indice++;
+		}
+		if (objectos[0].y + definicoes.naveg.tamy >= definicoes.maxy / 3 || indice >= 200)
+			return 0;
+		for (i = 0;i <= indice;i++) {
+			objectos[i].y = objectos[i].y + definicoes.folgay + objectos[i].tamy;
+		}
+		for (i = definicoes.folgahor;i < definicoes.maxx;i++) {
+			objec.id = indice + 1;
+			objec.tipo = 2;
+			objec.x = i;
+			objec.y = definicoes.folgaver;
+			objec.tamx = definicoes.navep.tamx;
+			objec.tamy = definicoes.navep.tamx;
+			crianave(objec, indice, objectos);
+
+			i = i + definicoes.navep.tamx + definicoes.folgax - 1;
+			if (i + definicoes.navep.tamx + definicoes.folgax + definicoes.folgahor + 1 >= definicoes.maxx)
+				i = definicoes.maxx;
+			indice++;
+		}
+		if (objectos[0].y + definicoes.navep.tamy >= definicoes.maxy / 3 || indice >= 200)
+			return 0;
+		for (i = 0;i <= indice;i++) {
+			objectos[i].y = objectos[i].y + definicoes.folgay + objectos[i].tamy;
+		}
+	}
 	return 0;
 }
 
@@ -392,3 +575,9 @@ obj * mapeamento() {
 
 	return ponteiro;
 }
+
+
+//** no cliente -> fazer um dialog box para fazer o login
+//espera pela conecçao cliente ou clientes
+//envia dimensoes do mapa para o cliente atravez do buffer circular 2
+//cria mapa com o alguritmos ja pseudofeito no papel

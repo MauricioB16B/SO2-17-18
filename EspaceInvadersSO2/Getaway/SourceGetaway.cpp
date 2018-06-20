@@ -35,6 +35,10 @@ typedef struct {
 	int iLeitura;
 
 }bufferinfo;
+typedef struct {
+	HANDLE hpipe;
+	int pid;
+}infothread3;
 
 #define PIPE_NAME TEXT("\\\\.\\pipe\\main")
 #define Buffers 10
@@ -45,7 +49,8 @@ DWORD WINAPI thread1(LPVOID param); // thread Recebe cliente
 DWORD WINAPI thread2(LPVOID param); // thread trata cliente 1 (Cliente --> Servidor)
 DWORD WINAPI thread3(LPVOID param); // thread trata cliente 2 (Servidor --> Cliente)
 HANDLE abreEvento(TCHAR string[1024]);
-int buffercircular2(msg dados);
+int buffercircularClienteServer(msg dados);
+int buffercircularServerCliente(infothread3 info);
 obj * mapeamento();
 
 int _tmain() {
@@ -70,6 +75,8 @@ int _tmain() {
 					if (mapa[i].id != NULL) {
 						if (!WriteFile(arrayhandles[ih], &mapa[i], sizeof(obj), NULL, NULL)) {
 							wprintf_s(L"ERRO na escrita do pipe OBJ\n");
+						}else{
+							wprintf_s(L"envio de NAVE!\n");
 						}
 					}
 				}
@@ -112,6 +119,7 @@ DWORD WINAPI thread2(LPVOID param) {
 	msg data;
 	HANDLE hWrite,hObj, mutexarrayhandles = CreateMutex(NULL, FALSE, TEXT("mutexarray"));
 	TCHAR string1[1024];
+	infothread3 infoth3;
 	int i;
 
 
@@ -157,19 +165,22 @@ DWORD WINAPI thread2(LPVOID param) {
 		return 0;
 	}
 
-	CreateThread(NULL, 0, thread3, (LPVOID)&hWrite, 0, NULL);// no need semaforo! so é lancada uma thread destas por cliente
+	infoth3.hpipe = hWrite;
+	infoth3.pid = _wtoi(data.aux8 + 9);
+	CreateThread(NULL, 0, thread3, (LPVOID)&infoth3, 0, NULL);// no need semaforo! so é lancada uma thread destas por cliente
 
 	wprintf_s(TEXT("Cliente \"%s\" Sem erros! tudo OK!!!\n"), data.aux8);
 
 	while (true){
 		
 		ReadFile(hRead, &data, sizeof(msg), NULL, NULL);
+		wprintf_s(L"cliente --> server == %s\n",data.aux6);
 		
 		if (data.aux1 == 33) {// aux1 == 33 é mensagem para testar comunicaçao com o getaway
 
 		}
 		else {
-			buffercircular2(data);
+			buffercircularClienteServer(data);
 		}
 
 	}
@@ -178,17 +189,19 @@ DWORD WINAPI thread2(LPVOID param) {
 }
 
 DWORD WINAPI thread3(LPVOID param) {
-	HANDLE * phWrite;
-	HANDLE hWrite;
-	phWrite = (HANDLE*)param;
-	hWrite = *phWrite;
+	infothread3 *pinfo;
+	infothread3 info;
+	pinfo = (infothread3 *)param;
+	info = *pinfo;
+	
 
-	//le do buffer circular2 e descarrega a msg para o pipe MSG getaway -> cliente
+	buffercircularServerCliente(info);
+	
 	
 	return 0;
 }
 
-int buffercircular2(msg dados) {
+int buffercircularClienteServer(msg dados) {
 	TCHAR NomeMemoria[] = TEXT("Nome da Memória Partilhada");
 	TCHAR NomeSemaforoPodeEscrever[] = TEXT("Semáforo Pode Escrever");
 	TCHAR NomeSemaforoPodeLer[] = TEXT("Semáforo Pode Ler");
@@ -252,7 +265,7 @@ int buffercircular2(msg dados) {
 		
 		//_stprintf_s(shm->buff[pos], BufferSize, TEXT("Pedido %d#%02d"), GetCurrentProcessId(), i);
 		//_tprintf(TEXT("Escrever para buffer %d o valor %d \n"), pos, shm->iEscrita);
-		_tprintf(TEXT("MSG roteada e enviada\n"));
+		//_tprintf(TEXT("MSG roteada e enviada\n"));
 
 		ReleaseMutex(mutex);
 
@@ -265,6 +278,76 @@ int buffercircular2(msg dados) {
 	CloseHandle(PodeLer);
 	CloseHandle(hMemoria);
 	CloseHandle(mutex);
+	return 0;
+}
+
+int buffercircularServerCliente(infothread3 info) {
+
+	TCHAR NomeMemoria[] = TEXT("Nome da Memória Partilhada2");
+	TCHAR NomeSemaforoPodeEscrever[] = TEXT("Semáforo Pode Escrever2");
+	TCHAR NomeSemaforoPodeLer[] = TEXT("Semáforo Pode Ler2");
+
+	TCHAR NomeMutexIndice[] = TEXT("MutexLeitor2");
+
+	HANDLE PodeEscrever;
+	HANDLE PodeLer;
+	HANDLE hMemoria;
+	HANDLE mutex;
+
+	while (1) {
+
+		bufferinfo *shm;
+		int pos;
+
+		PodeEscrever = CreateSemaphore(NULL, Buffers, Buffers, NomeSemaforoPodeEscrever);
+		PodeLer = CreateSemaphore(NULL, 0, Buffers, NomeSemaforoPodeLer);
+		hMemoria = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(bufferinfo), NomeMemoria);
+
+		mutex = CreateMutex(NULL, FALSE, NomeMutexIndice);
+
+		if (PodeEscrever == NULL || PodeLer == NULL || hMemoria == NULL) {
+			_tprintf(TEXT("[Erro]Criação de objectos do Windows(%d)\n"), GetLastError());
+			return -1;
+		}
+
+		shm = (bufferinfo*)MapViewOfFile(hMemoria, FILE_MAP_WRITE, 0, 0, sizeof(bufferinfo));
+		if (shm == NULL) {
+			_tprintf(TEXT("[Erro]Mapeamento da memória partilhada(%d)\n"), GetLastError());
+			return -1;
+		}
+
+		for (int i = 0;i==0; ++i) {
+			WaitForSingleObject(PodeLer, INFINITE);
+
+			WaitForSingleObject(mutex, INFINITE);
+			//ler IN par aa var local POS
+			pos = shm->iLeitura;
+			//shm->iLeitura = (shm->iLeitura + 1) % Buffers;//adiciona ate que é == a Buffers
+														  //Incrementar valor de IN
+			if (shm->dados[pos].aux5 == info.pid) {
+				WriteFile(info.hpipe, &shm->dados[pos], sizeof(obj), NULL, NULL);
+				wprintf_s(L"Server --> cliente %d == %s\n",info.pid, shm->dados[pos].aux6);
+				shm->iLeitura = (shm->iLeitura + 1) % Buffers;
+				ReleaseMutex(mutex);
+				ReleaseSemaphore(PodeEscrever, 1, NULL);
+			}else {
+				wprintf_s(L"Li e nao era para mim\n");
+				ReleaseMutex(mutex);
+
+				//tratamsg(shm->dados[pos]);// copia data do buffer para variavel da funcao e liberta o buffer
+				//WriteFile(info.hpipe, &shm->dados[pos], sizeof(obj), NULL, NULL);
+				//_tprintf(TEXT("NEW ---->>> %d"), shm->dados[pos].aux5);
+
+				ReleaseSemaphore(PodeLer, 1, NULL);
+			}
+		}
+
+		UnmapViewOfFile(shm);
+		CloseHandle(PodeEscrever);
+		CloseHandle(PodeLer);
+		CloseHandle(hMemoria);
+		CloseHandle(mutex);
+	}
 	return 0;
 }
 

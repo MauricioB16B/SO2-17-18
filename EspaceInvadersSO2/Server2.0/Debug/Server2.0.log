@@ -1,4 +1,4 @@
 ﻿  SourceServer2.0.cpp
-c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(85): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
-c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(90): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(98): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(103): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
   Server2.0.vcxproj -> C:\Users\mauri\Documents\GitHub\SO2_17-18\EspaceInvadersSO2\Debug\Server2.0.exe

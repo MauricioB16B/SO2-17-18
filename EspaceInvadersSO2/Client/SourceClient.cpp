@@ -340,6 +340,8 @@ DWORD WINAPI thread3(LPVOID param) {
 	DWORD n;
 	obj objecto;
 	int i;
+	TCHAR string1[1024];
+	
 	while (true) {
 		for (i = 0;i < 300;i++) {
 			ReadFile(hpipe3, &objecto, sizeof(obj), &n, NULL);
@@ -400,23 +402,27 @@ BOOL CALLBACK DeleteItemProc(HWND hwndDlg,UINT message,WPARAM wParam,LPARAM lPar
 }
 
 BOOL CALLBACK loginProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) {
-	msg data;
+	msg data, data2;
 	switch (message){
 	case WM_COMMAND:
 		switch (LOWORD(wParam)){
 		case IDLOGIN:
 			GetDlgItemText(hwndDlg, IDC_EDIT1, data.aux6, 1024);
 			data.tipo = 1;
+			data.aux5 = GetCurrentProcessId();
 			data.aux7[0] = '\0';
 			data.aux8[0] = '\0';
 			if (!WriteFile(hpipe, &data, sizeof(msg), NULL, NULL)) {
 				MessageBox(NULL, L"Erro na escrita do pipe!", _T("Janela de testes!! "), NULL);
 			}
-			ReadFile(hpipe2, &data, sizeof(msg), NULL, NULL);
+			ReadFile(hpipe2, &data2, sizeof(msg), NULL, NULL);
 			if (data.aux1 == -1) {
-				MessageBox(NULL, data.aux6, _T("Erro"), NULL);
+				MessageBox(NULL, data2.aux6, _T("Erro"), NULL);
 			}else{
-				MessageBox(NULL, data.aux6, _T("LogIN"), NULL);
+				CreateThread(NULL, 0, thread3, NULL, 0, NULL);
+				MoveWindow(handleWindowMain, 0, 0, data2.aux2, data2.aux3, TRUE);
+				MessageBox(NULL, data2.aux6, _T("LogIN"), NULL);
+
 				EndDialog(hwndDlg, LOWORD(wParam));
 			}
 			break;
