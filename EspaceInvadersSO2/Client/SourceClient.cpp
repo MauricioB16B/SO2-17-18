@@ -36,6 +36,13 @@ typedef struct obj {
 	char nome[256];
 	struct obj * prox;
 }obj;
+typedef struct {
+	int tamx;
+	int tamy;
+	int tipo;
+	TCHAR bitmap[1024];
+	HBITMAP himg;
+}tipo;
 
 // Global variables
 HWND handleWindowMain;
@@ -44,6 +51,7 @@ HBITMAP bmp;
 HDC dc, dc2;
 obj mapa[300];
 int primeiravez;
+tipo tipos[20];
 // The main window class nome.
 
 static TCHAR szWindowClass[] = _T("win32app");
@@ -60,6 +68,10 @@ DWORD WINAPI thread2(LPVOID param);
 DWORD WINAPI thread3(LPVOID param);
 
 void UpdateDc();
+
+int loadimg();
+
+int loaddefinicoes();
 
 BOOL CALLBACK DeleteItemProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -340,7 +352,6 @@ DWORD WINAPI thread3(LPVOID param) {
 	DWORD n;
 	obj objecto;
 	int i;
-	TCHAR string1[1024];
 	
 	while (true) {
 		for (i = 0;i < 300;i++) {
@@ -416,12 +427,14 @@ BOOL CALLBACK loginProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam
 				MessageBox(NULL, L"Erro na escrita do pipe!", _T("Janela de testes!! "), NULL);
 			}
 			ReadFile(hpipe2, &data2, sizeof(msg), NULL, NULL);
-			if (data.aux1 == -1) {
+			if (data2.aux1 == -1) {
 				MessageBox(NULL, data2.aux6, _T("Erro"), NULL);
 			}else{
+				loaddefinicoes();
+				loadimg();
 				CreateThread(NULL, 0, thread3, NULL, 0, NULL);
-				MoveWindow(handleWindowMain, 0, 0, data2.aux2, data2.aux3, TRUE);
 				MessageBox(NULL, data2.aux6, _T("LogIN"), NULL);
+				MoveWindow(handleWindowMain, 0, 0, data2.aux2, data2.aux3, TRUE);
 
 				EndDialog(hwndDlg, LOWORD(wParam));
 			}
@@ -445,24 +458,44 @@ BOOL CALLBACK loginProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam
 void UpdateDc() {
 	HBITMAP bmpN, bmpBack;
 	HDC dc2N;
-
 	dc2N = CreateCompatibleDC(dc);
-	bmpN = (HBITMAP)LoadImage(NULL, L"img\\teste512.bmp", IMAGE_BITMAP, 45 , 30, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
-
-	if (bmpN == NULL) {
-		//swprintf_s(string22, L"ERRO: %d", GetLastError());
-		GetLastError();
-		MessageBox(NULL, L"erro na imagem", _T("Janela de testes!! "), NULL);
-	}
 	bmpBack = (HBITMAP)LoadImage(NULL, L"img\\ground1.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
 	SelectObject(dc2N, bmpBack);
 	BitBlt(dc2, 0, 0, 1920, 1080, dc2N, 0, 0, SRCCOPY);
 
+
 	for (int i = 0;i<300;i++) {
 		if (mapa[i].tipo != NULL) {
-			SelectObject(dc2N, bmpN);
-			BitBlt(dc2, mapa[i].x, mapa[i].y, 500, 500, dc2N, 0, 0, SRCCOPY);
+			SelectObject(dc2N, tipos[mapa[i].tipo - 1].himg);
+			BitBlt(dc2, mapa[i].x, mapa[i].y, mapa[i].tamx, mapa[i].tamy, dc2N, 0, 0, SRCCOPY);
 		}
 	}
 	InvalidateRect(handleWindowMain, NULL, TRUE);
+}
+
+int loaddefinicoes() {
+	msg messag;
+	int i;
+	
+	for (i = 0;i <= 13 ;i++) {
+		ReadFile(hpipe2, &messag, sizeof(msg), NULL, NULL);
+		tipos[i].tipo = messag.aux1;
+		tipos[i].tamx = messag.aux2;;
+		tipos[i].tamy = messag.aux3;
+		swprintf_s(tipos[i].bitmap, L"%s", messag.aux6);
+	}
+	return 0;
+}
+
+int loadimg() {
+	TCHAR str1[1024];
+	int i;
+	for (i = 0;i <= 13;i++) {
+		tipos[i].himg = (HBITMAP)LoadImage(NULL, tipos[i].bitmap, IMAGE_BITMAP, tipos[i].tamx, tipos[i].tamy, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+		if (tipos[i].himg == NULL) {
+			swprintf_s(str1, L"%s", tipos[i].bitmap);
+			MessageBox(NULL, str1, L"Erro imagem not found", NULL);
+		}
+	}
+	return 0;
 }

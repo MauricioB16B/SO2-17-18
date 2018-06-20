@@ -41,7 +41,8 @@ typedef struct {
 typedef struct {
 	int tamx;
 	int tamy;
-	int id;
+	int tipo;
+	TCHAR bitmap[1024];
 }tipo;
 typedef struct definicoes {
 	int maxx;
@@ -59,6 +60,18 @@ typedef struct definicoes {
 	int pid2;
 	tipo naveg;
 	tipo navep;
+	tipo tiro;
+	tipo bomba;
+	tipo tjogador1;
+	tipo tjogador2;
+	tipo power1;
+	tipo power2;
+	tipo power3;
+	tipo power4;
+	tipo power5;
+	tipo power6;
+	tipo power7;
+	tipo power8;
 	int folgax;
 	int folgay;
 	int folgahor;
@@ -78,6 +91,9 @@ int crianave(obj objecto,int indice, obj * objectos);
 int criamapa(obj * objectos);
 int criamapa1p();
 int criamapa2p();
+int criajogador1(obj *objectos);
+int criajogador2(obj *objectos);
+void SendDefinitions(int pid);
 obj * mapeamento();
 int CriaNovoJogo(msg data);
 int buffercircular();
@@ -220,12 +236,77 @@ BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
 			
 			definicoes.maxx = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER1), (UINT)TBM_GETPOS, (WPARAM)0, (LPARAM)0);
 			definicoes.maxy = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER2), (UINT)TBM_GETPOS, (WPARAM)0, (LPARAM)0);
-			definicoes.naveg.tamx = 45;
+			
+			definicoes.naveg.tamx = 45; 
 			definicoes.naveg.tamy = 30;
-			definicoes.naveg.id = 0;
+			definicoes.naveg.tipo = 1;
+			swprintf_s(definicoes.naveg.bitmap, L"img\\colec\\naveg.bmp"); 
+
 			definicoes.navep.tamx = 45;
 			definicoes.navep.tamy = 30;
-			definicoes.navep.id = 1;
+			definicoes.navep.tipo = 2;
+			swprintf_s(definicoes.navep.bitmap, L"img\\colec\\navep.bmp");
+
+			definicoes.tiro.tamx = 5;
+			definicoes.tiro.tamy = 30;
+			definicoes.tiro.tipo = 3;
+			swprintf_s(definicoes.tiro.bitmap, L"img\\colec\\tiro.bmp");
+
+			definicoes.bomba.tamx = 5;
+			definicoes.bomba.tamy = 30;
+			definicoes.bomba.tipo = 4;
+			swprintf_s(definicoes.bomba.bitmap, L"img\\colec\\bomba.bmp");
+
+			definicoes.tjogador1.tamx = 80;
+			definicoes.tjogador1.tamy = 30;
+			definicoes.tjogador1.tipo = 5;
+			swprintf_s(definicoes.tjogador1.bitmap, L"img\\colec\\Player1.bmp");
+			
+			definicoes.tjogador2.tamx = 80;
+			definicoes.tjogador2.tamy = 30;
+			definicoes.tjogador2.tipo = 6;
+			swprintf_s(definicoes.tjogador2.bitmap, L"img\\colec\\Player2.bmp");
+
+			definicoes.power1.tamx = 30;
+			definicoes.power1.tamy = 30;
+			definicoes.power1.tipo = 7;
+			swprintf_s(definicoes.power1.bitmap, L"img\\colec\\pwerup1.bmp");
+
+			definicoes.power2.tamx = 30;
+			definicoes.power2.tamy = 30;
+			definicoes.power2.tipo = 8;
+			swprintf_s(definicoes.power2.bitmap, L"img\\colec\\pwerup2.bmp");
+
+			definicoes.power3.tamx = 30;
+			definicoes.power3.tamy = 30;
+			definicoes.power3.tipo = 9;
+			swprintf_s(definicoes.power3.bitmap, L"img\\colec\\pwerup3.bmp");
+
+			definicoes.power4.tamx = 30;
+			definicoes.power4.tamy = 30;
+			definicoes.power4.tipo = 10;
+			swprintf_s(definicoes.power4.bitmap, L"img\\colec\\pwerup4.bmp");
+
+			definicoes.power5.tamx = 30;
+			definicoes.power5.tamy = 30;
+			definicoes.power5.tipo = 11;
+			swprintf_s(definicoes.power5.bitmap, L"img\\colec\\pwerup5.bmp");
+
+			definicoes.power6.tamx = 30;
+			definicoes.power6.tamy = 30;
+			definicoes.power6.tipo = 12;
+			swprintf_s(definicoes.power6.bitmap, L"img\\colec\\pwerup6.bmp");
+
+			definicoes.power7.tamx = 30;
+			definicoes.power7.tamy = 30;
+			definicoes.power7.tipo = 13;
+			swprintf_s(definicoes.power7.bitmap, L"img\\colec\\pwerup7.bmp");
+
+			definicoes.power8.tamx = 30;
+			definicoes.power8.tamy = 30;
+			definicoes.power8.tipo = 14;
+			swprintf_s(definicoes.power8.bitmap, L"img\\colec\\pwerup8.bmp");
+
 			definicoes.folgahor=100;
 			definicoes.folgaver=50;
 			definicoes.folgay=20;
@@ -397,7 +478,7 @@ int buffercircular2(msg dados) {
 
 		//_stprintf_s(shm->buff[pos], BufferSize, TEXT("Pedido %d#%02d"), GetCurrentProcessId(), i);
 		//_tprintf(TEXT("Escrever para buffer %d o valor %d \n"), pos, shm->iEscrita);
-		_tprintf(TEXT("MSG roteada e enviada\n"));
+		//_tprintf(TEXT("MSG roteada e enviada\n"));
 
 		ReleaseMutex(mutex);
 
@@ -473,19 +554,57 @@ int CriaNovoJogo(msg data) {
 	reply.aux3 = definicoes.maxy;
 	buffercircular2(reply);
 
+	Sleep(500);
+	SendDefinitions(data.aux5);
+
 	if (wcslen(definicoes.jogador2) >= 1) {
 		if (definicoes.pid1 != NULL && definicoes.pid2 != NULL) {
-			//2p
+			criamapa(objectos);
+			criajogador1(objectos);
+			criajogador2(objectos);
 		}
 	}
 	else {
-		if (definicoes.pid1 != NULL) {
+		if (definicoes.pid1 != NULL && wcslen(definicoes.jogador2) < 1) {
 			criamapa(objectos);
+			criajogador1(objectos);
 		}
 	}
 
 	Sleep(200);
 	SetEvent(mapUpdate);
+	return 0;
+}
+
+int criajogador1(obj *objectos) {
+	int i;
+	for (i = 0;i <= 300;i++) {
+		if (objectos[i].tipo == NULL) {
+			objectos[i].id = i+1;
+			objectos[i].tipo = 5;
+			objectos[i].tamx = definicoes.tjogador1.tamx;
+			objectos[i].tamy = definicoes.tjogador1.tamy;
+			objectos[i].x = definicoes.folgahor;
+			objectos[i].y = definicoes.maxy - definicoes.tjogador1.tamy - 100;
+			i = 301;
+		}
+	}
+	return 0;
+}
+
+int criajogador2(obj *objectos) {
+	int i;
+	for (i = 0;i <= 300;i++) {
+		if (objectos[i].tipo == NULL) {
+			objectos[i].id = i + 1;
+			objectos[i].tipo = 6;
+			objectos[i].tamx = definicoes.tjogador1.tamx;
+			objectos[i].tamy = definicoes.tjogador1.tamy;
+			objectos[i].x = definicoes.maxx - definicoes.folgahor - definicoes.tjogador1.tamx;
+			objectos[i].y = definicoes.maxy - definicoes.tjogador1.tamy - 100;
+			i = 301;
+		}
+	}
 	return 0;
 }
 
@@ -574,6 +693,125 @@ obj * mapeamento() {
 		_tprintf(TEXT("Nao foi possivel fazer o mapeamento do vector no espaco mapeado ERRO (%d)\n"), GetLastError());
 
 	return ponteiro;
+}
+
+void SendDefinitions(int pid) {
+	msg messag;
+	int lag = 25;
+
+	messag.aux5 = pid;
+
+
+	messag.aux1 = definicoes.naveg.tipo;
+	messag.aux2 = definicoes.naveg.tamx;
+	messag.aux3 = definicoes.naveg.tamy;
+	swprintf_s(messag.aux6,L"%s",definicoes.naveg.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.navep.tipo;
+	messag.aux2 = definicoes.navep.tamx;
+	messag.aux3 = definicoes.navep.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.navep.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.tiro.tipo;
+	messag.aux2 = definicoes.tiro.tamx;
+	messag.aux3 = definicoes.tiro.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.tiro.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.bomba.tipo;
+	messag.aux2 = definicoes.bomba.tamx;
+	messag.aux3 = definicoes.bomba.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.bomba.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.tjogador1.tipo;
+	messag.aux2 = definicoes.tjogador1.tamx;
+	messag.aux3 = definicoes.tjogador1.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.tjogador1.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.tjogador2.tipo;
+	messag.aux2 = definicoes.tjogador2.tamx;
+	messag.aux3 = definicoes.tjogador2.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.tjogador2.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.power1.tipo;
+	messag.aux2 = definicoes.power1.tamx;
+	messag.aux3 = definicoes.power1.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.power1.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.power2.tipo;
+	messag.aux2 = definicoes.power2.tamx;
+	messag.aux3 = definicoes.power2.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.power2.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.power3.tipo;
+	messag.aux2 = definicoes.power3.tamx;
+	messag.aux3 = definicoes.power3.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.power3.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.power4.tipo;
+	messag.aux2 = definicoes.power4.tamx;
+	messag.aux3 = definicoes.power4.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.power4.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.power5.tipo;
+	messag.aux2 = definicoes.power5.tamx;
+	messag.aux3 = definicoes.power5.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.power5.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.power6.tipo;
+	messag.aux2 = definicoes.power6.tamx;
+	messag.aux3 = definicoes.power6.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.power6.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.power7.tipo;
+	messag.aux2 = definicoes.power7.tamx;
+	messag.aux3 = definicoes.power7.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.power7.bitmap);
+
+	buffercircular2(messag);
+	Sleep(lag);
+
+	messag.aux1 = definicoes.power8.tipo;
+	messag.aux2 = definicoes.power8.tamx;
+	messag.aux3 = definicoes.power8.tamy;
+	swprintf_s(messag.aux6, L"%s", definicoes.power8.bitmap);
+
+	buffercircular2(messag);
 }
 
 
