@@ -56,33 +56,35 @@ obj * mapeamento();
 int _tmain() {
 	obj * mapa;
 	obj FimTrasmissao;
-	HANDLE mapUpdate;
+	HANDLE mapUpdate,jalitudo;
 	int i,ih;
 
 	CreateThread(NULL, 0, thread1, (LPVOID)NULL, 0, NULL);
 	
 	mapUpdate = abreEvento(TEXT("MapUpdate"));
+	jalitudo = CreateSemaphore(NULL,0,1,L"PodeEscreverMapa");
 	if (mapUpdate == NULL)
 		return 0;
 	mapa = mapeamento();
+	FimTrasmissao.id = 5000;
 	while (true){
-		FimTrasmissao.id = 5000;
 		WaitForSingleObject(mapUpdate,INFINITE);
-		wprintf_s(L"Vou enviar mapa para o cliente\n");
+		//wprintf_s(L"Vou enviar mapa para o cliente\n");
 		for (ih = 0;ih < 30;ih++) {
 			if (arrayhandles[ih] != NULL) {
 				for (i = 0;i < 300;i++) {
-					if (mapa[i].id != NULL) {
+					//if (mapa[i].id != NULL) {
 						if (!WriteFile(arrayhandles[ih], &mapa[i], sizeof(obj), NULL, NULL)) {
 							wprintf_s(L"ERRO na escrita do pipe OBJ\n");
 						}else{
-							wprintf_s(L"envio de NAVE!\n");
+							//wprintf_s(L"envio de NAVE!\n");
 						}
-					}
+					//}
 				}
-				WriteFile(arrayhandles[ih], &FimTrasmissao, sizeof(obj), NULL, NULL);
+				//WriteFile(arrayhandles[ih], &FimTrasmissao, sizeof(obj), NULL, NULL);
 			}
 		}
+		ReleaseSemaphore(jalitudo, 1, NULL);
 	}
 	return 0;
 }
@@ -174,7 +176,7 @@ DWORD WINAPI thread2(LPVOID param) {
 	while (true){
 		
 		ReadFile(hRead, &data, sizeof(msg), NULL, NULL);
-		wprintf_s(L"cliente --> server == %s\n",data.aux6);
+		//wprintf_s(L"cliente --> server == %s\n",data.aux6);
 		
 		if (data.aux1 == 33) {// aux1 == 33 é mensagem para testar comunicaçao com o getaway
 
@@ -326,12 +328,12 @@ int buffercircularServerCliente(infothread3 info) {
 														  //Incrementar valor de IN
 			if (shm->dados[pos].aux5 == info.pid) {
 				WriteFile(info.hpipe, &shm->dados[pos], sizeof(obj), NULL, NULL);
-				wprintf_s(L"Server --> cliente %d == %s\n",info.pid, shm->dados[pos].aux6);
+				//wprintf_s(L"Server --> cliente %d == %s\n",info.pid, shm->dados[pos].aux6);
 				shm->iLeitura = (shm->iLeitura + 1) % Buffers;
 				ReleaseMutex(mutex);
 				ReleaseSemaphore(PodeEscrever, 1, NULL);
 			}else {
-				wprintf_s(L"Li e nao era para mim\n");
+				//wprintf_s(L"Li e nao era para mim\n");
 				ReleaseMutex(mutex);
 
 				//tratamsg(shm->dados[pos]);// copia data do buffer para variavel da funcao e liberta o buffer

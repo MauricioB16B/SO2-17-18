@@ -48,16 +48,18 @@ typedef struct definicoes {
 	int maxx;
 	int maxy;
 	int nnaves;
-	CHAR Tdireita;
-	CHAR Tesquerda;
-	CHAR Tdisparo;
-	CHAR Tdireita2;
-	CHAR Tesquerda2;
-	CHAR Tdisparo2;
+	int Tdireita;
+	int Tesquerda;
+	int Tdisparo;
+	int Tdireita2;
+	int Tesquerda2;
+	int Tdisparo2;
 	TCHAR jogador1[1024];
 	TCHAR jogador2[1024];
 	int pid1;
 	int pid2;
+	int pontos1;
+	int pontos2;
 	tipo naveg;
 	tipo navep;
 	tipo tiro;
@@ -83,11 +85,10 @@ static TCHAR szTitle[] = _T("Server");
 
 HINSTANCE hInst;
 def definicoes;
-int objCounterID;
-HANDLE mapUpdate;
-HANDLE clock;
+int objCounterID,nnaves,nnavesprontas,direcao,descida,level=1;
+HANDLE mapUpdate, clock, mutex, clock2, jalitudo;
 
-int tratamsg(msg data);
+int tratamsg(msg data, obj * objectos);
 int crianave(obj objecto,int indice, obj * objectos);
 int criamapa(obj * objectos);
 int criamapa1p();
@@ -97,12 +98,15 @@ int criajogador2(obj *objectos);
 void SendDefinitions(int pid);
 obj * mapeamento();
 int CriaNovoJogo(msg data);
-int move(msg data);
+int tiro(msg data, obj * objectos);
+int move(msg data, obj * objectos);
 int buffercircular();
 int buffercircular2(msg dados);
+int apanhatecla();
 DWORD WINAPI thread1(LPVOID param);
 DWORD WINAPI thread2(LPVOID param);
 DWORD WINAPI thread3(LPVOID param);
+DWORD WINAPI thread4(LPVOID param);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -184,6 +188,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	case WM_CREATE:
 		mapUpdate = CreateEvent(NULL, FALSE, FALSE, TEXT("MapUpdate"));
 		clock = CreateEvent(NULL, TRUE, FALSE, TEXT("clock"));
+		clock2 = CreateEvent(NULL, TRUE, FALSE, TEXT("clock2"));
+		mutex = CreateMutex(NULL, FALSE, L"mutexmapa");
+		jalitudo = CreateSemaphore(NULL, 0, 1, L"PodeEscreverMapa");
+		nnaves = 0;
+		nnavesprontas = 0;
+		direcao = 1;
+		descida = 0;
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
@@ -223,6 +234,48 @@ BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
 			break;
 		case IDCANCEL:
 			EndDialog(hwndDlg, LOWORD(wParam));
+			break;
+		case IDC_BUTTON1:
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON1), FALSE);
+			definicoes.Tesquerda = apanhatecla();
+			swprintf_s(string1, L"%d", definicoes.Tesquerda);
+			SetDlgItemText(hwndDlg, IDC_EDIT3, string1);
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON1), TRUE);
+			break;
+		case IDC_BUTTON2:
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON2), FALSE);
+			definicoes.Tdireita= apanhatecla();
+			swprintf_s(string1, L"%d", definicoes.Tdireita);
+			SetDlgItemText(hwndDlg, IDC_EDIT4, string1);
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON2), TRUE);
+			break;
+		case IDC_BUTTON3:
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON3), FALSE);
+			definicoes.Tdisparo = apanhatecla();
+			swprintf_s(string1, L"%d", definicoes.Tdisparo);
+			SetDlgItemText(hwndDlg, IDC_EDIT5, string1);
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON3), TRUE);
+			break;
+		case IDC_BUTTON4:
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON4), FALSE);
+			definicoes.Tesquerda2 = apanhatecla();
+			swprintf_s(string1, L"%d", definicoes.Tesquerda2);
+			SetDlgItemText(hwndDlg, IDC_EDIT6, string1);
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON4), TRUE);
+			break;
+		case IDC_BUTTON5:
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON5), FALSE);
+			definicoes.Tdireita2 = apanhatecla();
+			swprintf_s(string1, L"%d", definicoes.Tdireita2);
+			SetDlgItemText(hwndDlg, IDC_EDIT7, string1);
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON5), TRUE);
+			break;
+		case IDC_BUTTON6:
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON6), FALSE);
+			definicoes.Tdisparo2 = apanhatecla();
+			swprintf_s(string1, L"%d", definicoes.Tdisparo2);
+			SetDlgItemText(hwndDlg, IDC_EDIT8, string1);
+			EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON6), TRUE);
 			break;
 		case IDOK:
 			if (Button_GetCheck(GetDlgItem(hwndDlg, IDC_CHECK2)) == BST_UNCHECKED){
@@ -340,12 +393,18 @@ BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
 		SendDlgItemMessage(hwndDlg, IDC_CHECK1, BM_SETCHECK, BST_CHECKED, 0);
 		SetDlgItemText(hwndDlg, IDC_EDIT13, L"500");
 		SetDlgItemText(hwndDlg, IDC_EDIT14, L"300");
-		SetDlgItemText(hwndDlg, IDC_EDIT3, L"a");
-		SetDlgItemText(hwndDlg, IDC_EDIT4, L"d");
-		SetDlgItemText(hwndDlg, IDC_EDIT5, L"k");
-		SetDlgItemText(hwndDlg, IDC_EDIT6, L"4");
-		SetDlgItemText(hwndDlg, IDC_EDIT7, L"6");
-		SetDlgItemText(hwndDlg, IDC_EDIT8, L"0");
+		definicoes.Tdireita = 39;
+		definicoes.Tesquerda = 37;
+		definicoes.Tdisparo = 32;
+		definicoes.Tdireita2 = 102;
+		definicoes.Tesquerda2 = 100;
+		definicoes.Tdisparo2 = 96;
+		SetDlgItemText(hwndDlg, IDC_EDIT3, L" ");
+		SetDlgItemText(hwndDlg, IDC_EDIT4, L" ");
+		SetDlgItemText(hwndDlg, IDC_EDIT5, L" ");
+		SetDlgItemText(hwndDlg, IDC_EDIT6, L" ");
+		SetDlgItemText(hwndDlg, IDC_EDIT7, L" ");
+		SetDlgItemText(hwndDlg, IDC_EDIT8, L" ");
 		break;
 	case WM_CLOSE:
 		EndDialog(hwndDlg, LOWORD(wParam));
@@ -354,16 +413,8 @@ BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
 	return FALSE;
 }
 
-DWORD WINAPI thread1(LPVOID param) {
-
-	objCounterID = 0;
-		buffercircular();
-
-	return 0;
-}
-
 int buffercircular() {
-
+	obj * objectos = mapeamento();
 	TCHAR NomeMemoria[] = TEXT("Nome da Memória Partilhada");
 	TCHAR NomeSemaforoPodeEscrever[] = TEXT("Semáforo Pode Escrever");
 	TCHAR NomeSemaforoPodeLer[] = TEXT("Semáforo Pode Ler");
@@ -406,7 +457,7 @@ int buffercircular() {
 														  //Incrementar valor de IN
 			ReleaseMutex(mutex);
 
-			tratamsg(shm->dados[pos]);// copia data do buffer para variavel da funcao e liberta o buffer
+			tratamsg(shm->dados[pos], objectos);// copia data do buffer para variavel da funcao e liberta o buffer
 			ReleaseSemaphore(PodeEscrever, 1, NULL);
 		}
 
@@ -499,7 +550,7 @@ int buffercircular2(msg dados) {
 	return 0;
 }
 
-int tratamsg(msg data) {
+int tratamsg(msg data, obj * objectos) {
 	HANDLE semaforo1 = CreateSemaphore(NULL, 1, 1, TEXT("semaforo1"));
 	WaitForSingleObject(semaforo1, INFINITE);
 	//TCHAR string1[1024];
@@ -510,14 +561,10 @@ int tratamsg(msg data) {
 		CriaNovoJogo(data);
 		break;
 	case 2:
-		move(data);
+		move(data, objectos);
 		break;
 	case 3:
-		while (true)
-		{
-			Sleep(2000);
-			SetEvent(mapUpdate);
-		}
+		tiro(data, objectos);
 		break;
 	case 4:
 		ReleaseSemaphore(semaforo1, 1, NULL);
@@ -537,8 +584,34 @@ int tratamsg(msg data) {
 	return 0;
 }
 
-int move(msg data) {
-	obj * objectos = mapeamento();
+int tiro(msg data, obj * objectos) {
+	HANDLE semaforoThTiro = CreateSemaphore(NULL, 1, 1, TEXT("semaforoThtiro"));
+	msg infotiro;
+	
+	if (data.aux5 == definicoes.pid1) {
+		infotiro.aux1 = objectos[0].x + (objectos[0].tamx/2);
+		infotiro.aux2 = objectos[0].y - objectos[0].tamy;
+		infotiro.aux3 = 1;
+
+		WaitForSingleObject(semaforoThTiro, INFINITE);
+		CreateThread(NULL, 0, thread4, (LPVOID)&infotiro, 0, NULL);
+		WaitForSingleObject(semaforoThTiro, INFINITE);
+		ReleaseSemaphore(semaforoThTiro, 1, NULL);
+	}
+	if (data.aux5 == definicoes.pid2) {
+		infotiro.aux1 = objectos[1].x + (objectos[1].tamx / 2);
+		infotiro.aux2 = objectos[1].y - objectos[1].tamy;
+		infotiro.aux3 = 2;
+
+		WaitForSingleObject(semaforoThTiro, INFINITE);
+		CreateThread(NULL, 0, thread4, (LPVOID)&infotiro, 0, NULL);
+		WaitForSingleObject(semaforoThTiro, INFINITE);
+		ReleaseSemaphore(semaforoThTiro, 1, NULL);
+	}
+	return 0;
+}
+
+int move(msg data, obj *objectos) {
 	
 	if (data.aux5 == definicoes.pid1) {
 		if (data.aux1 == 1)
@@ -591,16 +664,17 @@ int CriaNovoJogo(msg data) {
 			criamapa(objectos);
 			criajogador1(objectos);
 			criajogador2(objectos);
+			CreateThread(NULL, 0, thread3, NULL, 0, NULL);
 		}
 	}
 	else {
 		if (definicoes.pid1 != NULL && wcslen(definicoes.jogador2) < 1) {
 			criamapa(objectos);
 			criajogador1(objectos);
+			CreateThread(NULL, 0, thread3, NULL, 0, NULL);
 		}
 	}
 	Sleep(200);
-	CreateThread(NULL, 0, thread3, NULL, 0, NULL);
 	SetEvent(mapUpdate);
 	return 0;
 }
@@ -644,50 +718,164 @@ int crianave(obj objecto, int indice, obj * objectos) {
 	return 0;
 }
 
+DWORD WINAPI thread1(LPVOID param) {
+
+	objCounterID = 0;
+	buffercircular();
+
+	return 0;
+}
+
 DWORD WINAPI thread2(LPVOID param) {
-	HANDLE mutex= CreateMutex(NULL, FALSE, L"mutexmapa");
-	HANDLE semaforoThNave = CreateSemaphore(NULL, 1, 1, TEXT("semaforoThreadNave"));
+	HANDLE semaforoThNave = CreateSemaphore(NULL, 0, 1, TEXT("semaforoThreadNave"));
 	obj * pobj;
 	obj esteobjecto;
 	pobj = (obj *)param;
 	esteobjecto = *pobj;
 	obj * mapa = mapeamento();
 	ReleaseSemaphore(semaforoThNave, 1, NULL);
-	int i;
+	int i,direcaobuff,destroi=1;
+	nnaves++;
 
 	while (1) {
+		direcaobuff = direcao;
 		WaitForSingleObject(clock, INFINITE);
 		WaitForSingleObject(mutex, INFINITE);
 		for (i = 0;i<300;i++) {
 			if (mapa[i].id == esteobjecto.id) {
-				mapa[i].x++;
-			}
+				destroi = 0;
+				//if (mapa[i].tipo == definicoes.naveg.tipo || mapa[i].tipo == definicoes.navep.tipo ) {
+					if (direcao == 2)
+						descida++;
+					if (mapa[i].x + mapa[i].tamx + 50 >= definicoes.maxx && direcao != 2 && direcao == 1) {
+						direcao = 2;
+					}
+
+					if (mapa[i].x - 50 <= 0 && direcao != 2 && direcao == 3) {
+						direcao = 2;
+					}
+					if (descida / nnaves >= 15 && (direcao == 2 && mapa[i].x - 50 <= 0 || mapa[i].x + mapa[i].tamx + 50 >= definicoes.maxx)) {
+						if (mapa[i].x - 50 <= 0) {
+							direcao = 1;
+						}
+						else {
+							direcao = 3;
+						}
+						descida = 0;
+					}
+
+
+
+					if (direcaobuff == 1) {
+						mapa[i].x = mapa[i].x + level;
+					}
+					if (direcaobuff == 2) {
+						mapa[i].y = mapa[i].y + level;
+					}
+					if (direcaobuff == 3) {
+						mapa[i].x = mapa[i].x - level;
+					}
+					if (direcaobuff == 4) {
+						mapa[i].y = mapa[i].y - level;
+					}
+				}
+			//}
 		}
+		if (destroi == 1){
+			nnaves--;
+			ReleaseMutex(mutex);
+			return 0;
+		}
+		destroi = 1;
+		nnavesprontas++;
 		ReleaseMutex(mutex);
-		Sleep(50);//outro sinal para garantir que a operaçao so é feita uma vez!
+		WaitForSingleObject(clock2, INFINITE);
 	}
 	return 0;
 }
 
 DWORD WINAPI thread3(LPVOID param) {
-	HANDLE mutex = CreateMutex(NULL, FALSE, L"mutexmapa");
-	Sleep(5000);
+	Sleep(3000);
 	while (1) {
+		if (nnaves<=0) {
+			MessageBox(NULL, L"Game OVer",L"Servidor!", MB_OK | MB_ICONASTERISK);
+		}
+		Sleep(1);
 		SetEvent(clock);
-		Sleep(50);
+		while (1){
+			WaitForSingleObject(mutex, INFINITE);
+			if (nnaves <= nnavesprontas) {
+				break;
+			}
+			ReleaseMutex(mutex);
+		}
+		nnavesprontas = 0;
 		ResetEvent(clock);
-
-		WaitForSingleObject(mutex, INFINITE);
 		SetEvent(mapUpdate);
-		Sleep(60);//semaforo para o getaway enquanto prende o mutex no servidor
+		WaitForSingleObject(jalitudo, 30);
 		ReleaseMutex(mutex);
-		Sleep(100);
+		SetEvent(clock2);
+		//Sleep(1);
+		ResetEvent(clock2);
 	}
 	return 0;
 }
 
+DWORD WINAPI thread4(LPVOID param) {
+	HANDLE semaforoThTiro = CreateSemaphore(NULL, 1, 1, TEXT("semaforoThtiro"));
+	msg * pinfo;
+	msg info;
+	pinfo = (msg *)param;
+	info = *pinfo;
+	ReleaseSemaphore(semaforoThTiro, 1, NULL);
+	obj * objectos = mapeamento();
+	int i,e;
+	if (info.aux3 == 1) {//tiro do player 1
+		for (i = 0;i < 300;i++) {
+			if (objectos[i].tipo == NULL) {
+				WaitForSingleObject(mutex, INFINITE);
+				objectos[i].id = 500;
+				objectos[i].tipo = definicoes.tiro.tipo;
+				objectos[i].x = info.aux1;
+				objectos[i].y = info.aux2;
+				objectos[i].tamx = definicoes.tiro.tamx;
+				objectos[i].tamy = definicoes.tiro.tamy;
+				ReleaseMutex(mutex);
+				while (objectos[i].y > 0){
+					WaitForSingleObject(mutex, INFINITE);
+					for (e = 0;e < 300;e++) {
+						if (objectos[e].tipo !=  NULL) {
+							if (objectos[e].x < objectos[i].x && (objectos[e].x + objectos[e].tamx) > objectos[i].x) {
+								if (objectos[e].y < objectos[i].y && (objectos[e].y + objectos[e].tamy)> objectos[i].y) {
+									objectos[e].id = NULL;
+									objectos[e].tipo = NULL;
+									objectos[i].id = NULL;
+									objectos[i].tipo = NULL;
+									return 0;
+								}
+							}
+						}
+					}
+					objectos[i].y = objectos[i].y -4;
+					SetEvent(mapUpdate);
+					ReleaseMutex(mutex);
+					Sleep(1);
+				}
+				WaitForSingleObject(mutex, INFINITE);
+				objectos[i].id = NULL;
+				objectos[i].tipo = NULL;
+				ReleaseMutex(mutex);
+				return 0;
+			}
+		}
+	}
+	else {//tiro do player 2
+	}
+
+	return 0;
+}
+
 int criamapa(obj * objectos) {
-	HANDLE mutex = CreateMutex(NULL, FALSE, L"mutexmapa");
 	int i,indice=2;
 	obj objec;
 	WaitForSingleObject(mutex, INFINITE);
@@ -885,8 +1073,45 @@ void SendDefinitions(int pid) {
 	swprintf_s(messag.aux6, L"%s", definicoes.power8.bitmap);
 
 	buffercircular2(messag);
+	Sleep(lag);
+	//teclas
+	if (wcslen(definicoes.jogador2) >= 1) {//Verdade multi player
+		messag.aux5 = definicoes.pid1;
+		messag.aux1 = definicoes.Tdireita;
+		messag.aux2 = definicoes.Tesquerda;
+		messag.aux3 = definicoes.Tdisparo;
+
+		buffercircular2(messag);
+		Sleep(lag);
+
+		messag.aux5 = definicoes.pid2;
+		messag.aux1 = definicoes.Tdireita2;
+		messag.aux2 = definicoes.Tesquerda2;
+		messag.aux3 = definicoes.Tdisparo2;
+
+		buffercircular2(messag);
+	}
+	else {//single player
+		messag.aux5 = definicoes.pid1;
+		messag.aux1 = definicoes.Tdireita;
+		messag.aux2 = definicoes.Tesquerda;
+		messag.aux3 = definicoes.Tdisparo;
+
+		buffercircular2(messag);
+	}
+	
 }
 
+int apanhatecla() {
+	int i;
+	for (i = 10;;i++) {
+		if (GetAsyncKeyState(i))
+			return i;
+		if (i > 250)
+			i = 10;
+	}
+	return 0;
+}
 
 //** no cliente -> fazer um dialog box para fazer o login
 //espera pela conecçao cliente ou clientes

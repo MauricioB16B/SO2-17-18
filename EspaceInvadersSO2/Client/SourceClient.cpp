@@ -43,6 +43,11 @@ typedef struct {
 	TCHAR bitmap[1024];
 	HBITMAP himg;
 }tipo;
+typedef struct {
+	int dir;
+	int esq;
+	int disp;
+}teclas;
 
 // Global variables
 HWND handleWindowMain;
@@ -53,6 +58,7 @@ HDC dc, dc2, dc2N;
 obj mapa[300];
 int primeiravez,velocidadeDir,velocidadeEsq;
 tipo tipos[20];
+teclas play1, play2;
 // The main window class nome.
 
 static TCHAR szWindowClass[] = _T("win32app");
@@ -253,41 +259,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	return 0;
 }
 
-DWORD WINAPI thread4(LPVOID param) {
-	msg data;
-	data.aux5 = GetCurrentProcessId();
-	int a = 0;
-	while (true){
-		if (GetAsyncKeyState(VK_LEFT)) {
-			a++;
-			data.tipo = 2;
-			data.aux1 = 2;
-			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
-			if (a < 20) {
-				Sleep(20);
-			}else{
-				Sleep(5);
-			}
-		}
-		else if (GetAsyncKeyState(VK_RIGHT)) {
-			a++;
-			data.tipo = 2;
-			data.aux1 = 1;
-			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
-			if (a < 20) {
-				Sleep(20);
-			}
-			else {
-				Sleep(5);
-			}
-		}
-		else{
-			a = 0;
-		}
-	}
-	return 0;
-}
-
 DWORD WINAPI thread1(LPVOID param) {
 	Sleep(500);
 	msg data;
@@ -374,15 +345,56 @@ DWORD WINAPI thread3(LPVOID param) {
 	while (true) {
 		for (i = 0;i < 300;i++) {
 			ReadFile(hpipe3, &objecto, sizeof(obj), &n, NULL);
-			if (objecto.id == 5000) {
-				i = 300;
-			}else{
+			//if (objecto.id == 5000) {
+			//	i = 300;
+			//}else{
 				mapa[i] = objecto;//mutex mapa
-			}
+			//}
 		}
 		UpdateDc();
 	}
 	
+	return 0;
+}
+
+DWORD WINAPI thread4(LPVOID param) {
+	msg data;
+	data.aux5 = GetCurrentProcessId();
+	int a = 0;
+	while (true) {
+		if (GetAsyncKeyState(play1.esq)) {
+			a++;
+			data.tipo = 2;
+			data.aux1 = 2;
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
+			if (a < 20) {
+				Sleep(20);
+			}
+			else {
+				Sleep(5);
+			}
+		}
+		else if (GetAsyncKeyState(play1.dir)) {
+			a++;
+			data.tipo = 2;
+			data.aux1 = 1;
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
+			if (a < 20) {
+				Sleep(20);
+			}
+			else {
+				Sleep(5);
+			}
+		}
+		else if (GetAsyncKeyState(play1.disp)) {
+			data.tipo = 3;
+			WriteFile(hpipe, &data, sizeof(msg), NULL, NULL);
+			Sleep(100);
+		}
+		else {
+			a = 0;
+		}
+	}
 	return 0;
 }
 
@@ -504,7 +516,18 @@ int loaddefinicoes() {
 		tipos[i].tamy = messag.aux3;
 		swprintf_s(tipos[i].bitmap, L"%s", messag.aux6);
 	}
-	return 0;
+	
+	ReadFile(hpipe2, &messag, sizeof(msg), NULL, NULL);
+	play1.dir = messag.aux1;
+	play1.esq = messag.aux2;
+	play1.disp = messag.aux3;
+	/*
+	ReadFile(hpipe2, &messag, sizeof(msg), NULL, NULL);
+	play2.dir = messag.aux1;
+	play2.esq = messag.aux2;
+	play2.disp = messag.aux3;
+	*/
+	return 0; 
 }
 
 int loadimg() {
