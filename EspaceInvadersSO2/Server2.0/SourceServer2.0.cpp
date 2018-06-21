@@ -869,7 +869,44 @@ DWORD WINAPI thread4(LPVOID param) {
 			}
 		}
 	}
-	else {//tiro do player 2
+	else {//tiro 2player
+		for (i = 0;i < 300;i++) {
+			if (objectos[i].tipo == NULL) {
+				WaitForSingleObject(mutex, INFINITE);
+				objectos[i].id = 500;
+				objectos[i].tipo = definicoes.tiro.tipo;
+				objectos[i].x = info.aux1;
+				objectos[i].y = info.aux2;
+				objectos[i].tamx = definicoes.tiro.tamx;
+				objectos[i].tamy = definicoes.tiro.tamy;
+				ReleaseMutex(mutex);
+				while (objectos[i].y > 0) {
+					WaitForSingleObject(mutex, INFINITE);
+					for (e = 0;e < 300;e++) {
+						if (objectos[e].tipo != NULL) {
+							if (objectos[e].x < objectos[i].x && (objectos[e].x + objectos[e].tamx) > objectos[i].x) {
+								if (objectos[e].y < objectos[i].y && (objectos[e].y + objectos[e].tamy)> objectos[i].y) {
+									objectos[e].id = NULL;
+									objectos[e].tipo = NULL;
+									objectos[i].id = NULL;
+									objectos[i].tipo = NULL;
+									return 0;
+								}
+							}
+						}
+					}
+					objectos[i].y = objectos[i].y - 4;
+					SetEvent(mapUpdate);
+					ReleaseMutex(mutex);
+					Sleep(1);
+				}
+				WaitForSingleObject(mutex, INFINITE);
+				objectos[i].id = NULL;
+				objectos[i].tipo = NULL;
+				ReleaseMutex(mutex);
+				return 0;
+			}
+		}
 	}
 
 	return 0;
