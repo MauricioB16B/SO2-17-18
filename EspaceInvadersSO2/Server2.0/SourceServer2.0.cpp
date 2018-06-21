@@ -1,3 +1,4 @@
+#define _CRT_RAND_S  
 #include <windows.h>  
 #include <stdlib.h>  
 #include <string.h>  
@@ -5,11 +6,14 @@
 #include "resource.h"
 #include <Commctrl.h>
 #include <Windowsx.h>
+#include <time.h>
 
 #define BufferSize 100
 #define Buffers 10
 
 typedef struct obj {
+	int lasthit;
+	int vida;
 	int id;
 	int tipo;
 	int x;
@@ -86,7 +90,7 @@ static TCHAR szTitle[] = _T("Server");
 HINSTANCE hInst;
 def definicoes;
 int objCounterID,nnaves,nnavesprontas,direcao,descida,level=1;
-HANDLE mapUpdate, clock, mutex, clock2, jalitudo;
+HANDLE mapUpdate, cllock, mutex, clock2, jalitudo;
 
 int tratamsg(msg data, obj * objectos);
 int crianave(obj objecto,int indice, obj * objectos);
@@ -103,15 +107,19 @@ int move(msg data, obj * objectos);
 int buffercircular();
 int buffercircular2(msg dados);
 int apanhatecla();
+int randominate(int range_min, int range_max);
 DWORD WINAPI thread1(LPVOID param);
 DWORD WINAPI thread2(LPVOID param);
 DWORD WINAPI thread3(LPVOID param);
 DWORD WINAPI thread4(LPVOID param);
+DWORD WINAPI thread5(LPVOID param);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK Dialog1Proc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance,_In_ HINSTANCE hPrevInstance,_In_ LPSTR lpCmdLine, _In_ int nCmdShow){
 	WNDCLASSEX wcex;
+
+	srand(time(NULL));
 
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -187,7 +195,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		break;
 	case WM_CREATE:
 		mapUpdate = CreateEvent(NULL, FALSE, FALSE, TEXT("MapUpdate"));
-		clock = CreateEvent(NULL, TRUE, FALSE, TEXT("clock"));
+		cllock = CreateEvent(NULL, TRUE, FALSE, TEXT("clock"));
 		clock2 = CreateEvent(NULL, TRUE, FALSE, TEXT("clock2"));
 		mutex = CreateMutex(NULL, FALSE, L"mutexmapa");
 		jalitudo = CreateSemaphore(NULL, 0, 1, L"PodeEscreverMapa");
@@ -687,6 +695,7 @@ int criajogador1(obj *objectos) {
 			objectos[0].tamy = definicoes.tjogador1.tamy;
 			objectos[0].x = definicoes.folgahor;
 			objectos[0].y = definicoes.maxy - definicoes.tjogador1.tamy - 100;
+			objectos[0].vida = 5;
 	}
 	return 0;
 }
@@ -699,6 +708,7 @@ int criajogador2(obj *objectos) {
 		objectos[1].tamy = definicoes.tjogador2.tamy;
 		objectos[1].x = definicoes.maxx - definicoes.folgahor - definicoes.tjogador2.tamx - 50;
 		objectos[1].y = definicoes.maxy - definicoes.tjogador1.tamy - 100;
+		objectos[1].vida = 5;
 	}
 	return 0;
 }
@@ -711,6 +721,7 @@ int crianave(obj objecto, int indice, obj * objectos) {
 	objectos[indice].tipo = objecto.tipo;
 	objectos[indice].tamx = objecto.tamx;
 	objectos[indice].tamy = objecto.tamy;
+	objectos[indice].vida = 3;
 	WaitForSingleObject(semaforoThNave, INFINITE);
 	CreateThread(NULL, 0, thread2, (LPVOID)&objecto, 0, NULL);
 	WaitForSingleObject(semaforoThNave, INFINITE);
@@ -728,23 +739,35 @@ DWORD WINAPI thread1(LPVOID param) {
 
 DWORD WINAPI thread2(LPVOID param) {
 	HANDLE semaforoThNave = CreateSemaphore(NULL, 0, 1, TEXT("semaforoThreadNave"));
+	HANDLE semaforoThbomba = CreateSemaphore(NULL, 1, 1, TEXT("semaforoThBomba"));
 	obj * pobj;
 	obj esteobjecto;
 	pobj = (obj *)param;
 	esteobjecto = *pobj;
 	obj * mapa = mapeamento();
 	ReleaseSemaphore(semaforoThNave, 1, NULL);
-	int i,direcaobuff,destroi=1;
+	int i, direcaobuff;
+	msg info;
 	nnaves++;
 
 	while (1) {
 		direcaobuff = direcao;
-		WaitForSingleObject(clock, INFINITE);
+		WaitForSingleObject(cllock, INFINITE);
 		WaitForSingleObject(mutex, INFINITE);
 		for (i = 0;i<300;i++) {
 			if (mapa[i].id == esteobjecto.id) {
-				destroi = 0;
-				//if (mapa[i].tipo == definicoes.naveg.tipo || mapa[i].tipo == definicoes.navep.tipo ) {
+				if (mapa[i].vida <= 0) {
+					if (mapa[i].lasthit == 1) {
+						definicoes.pontos1 = definicoes.pontos1 + 4;
+					}else{
+						definicoes.pontos2 = definicoes.pontos2 + 4;
+					}
+					mapa[i].id = NULL;
+					mapa[i].tipo = NULL;
+					nnaves--;
+					ReleaseMutex(mutex);
+					return 0;
+				}
 					if (direcao == 2)
 						descida++;
 					if (mapa[i].x + mapa[i].tamx + 50 >= definicoes.maxx && direcao != 2 && direcao == 1) {
@@ -778,15 +801,19 @@ DWORD WINAPI thread2(LPVOID param) {
 					if (direcaobuff == 4) {
 						mapa[i].y = mapa[i].y - level;
 					}
+
+
+					
+					if (randominate(1,10000) == 5500) {
+						info.aux1 = mapa[i].x + (mapa[i].tamx/2);
+						info.aux2 = mapa[i].y + mapa[i].tamy;
+						WaitForSingleObject(semaforoThbomba, INFINITE);
+						CreateThread(NULL, 0, thread5, (LPVOID)&info, 0, NULL);
+						WaitForSingleObject(semaforoThbomba, INFINITE);
+						ReleaseSemaphore(semaforoThbomba, 1, NULL);
+					}
 				}
-			//}
 		}
-		if (destroi == 1){
-			nnaves--;
-			ReleaseMutex(mutex);
-			return 0;
-		}
-		destroi = 1;
 		nnavesprontas++;
 		ReleaseMutex(mutex);
 		WaitForSingleObject(clock2, INFINITE);
@@ -801,7 +828,7 @@ DWORD WINAPI thread3(LPVOID param) {
 			MessageBox(NULL, L"Game OVer",L"Servidor!", MB_OK | MB_ICONASTERISK);
 		}
 		Sleep(1);
-		SetEvent(clock);
+		SetEvent(cllock);
 		while (1){
 			WaitForSingleObject(mutex, INFINITE);
 			if (nnaves <= nnavesprontas) {
@@ -810,7 +837,7 @@ DWORD WINAPI thread3(LPVOID param) {
 			ReleaseMutex(mutex);
 		}
 		nnavesprontas = 0;
-		ResetEvent(clock);
+		ResetEvent(cllock);
 		SetEvent(mapUpdate);
 		WaitForSingleObject(jalitudo, 30);
 		ReleaseMutex(mutex);
@@ -847,10 +874,11 @@ DWORD WINAPI thread4(LPVOID param) {
 						if (objectos[e].tipo !=  NULL) {
 							if (objectos[e].x < objectos[i].x && (objectos[e].x + objectos[e].tamx) > objectos[i].x) {
 								if (objectos[e].y < objectos[i].y && (objectos[e].y + objectos[e].tamy)> objectos[i].y) {
-									objectos[e].id = NULL;
-									objectos[e].tipo = NULL;
+									objectos[e].vida--;
+									objectos[e].lasthit = 1;
 									objectos[i].id = NULL;
 									objectos[i].tipo = NULL;
+									definicoes.pontos1++;
 									return 0;
 								}
 							}
@@ -886,10 +914,11 @@ DWORD WINAPI thread4(LPVOID param) {
 						if (objectos[e].tipo != NULL) {
 							if (objectos[e].x < objectos[i].x && (objectos[e].x + objectos[e].tamx) > objectos[i].x) {
 								if (objectos[e].y < objectos[i].y && (objectos[e].y + objectos[e].tamy)> objectos[i].y) {
-									objectos[e].id = NULL;
-									objectos[e].tipo = NULL;
+									objectos[e].vida--;
+									objectos[e].lasthit = 2;
 									objectos[i].id = NULL;
 									objectos[i].tipo = NULL;
+									definicoes.pontos2++;
 									return 0;
 								}
 							}
@@ -905,6 +934,33 @@ DWORD WINAPI thread4(LPVOID param) {
 				objectos[i].tipo = NULL;
 				ReleaseMutex(mutex);
 				return 0;
+			}
+		}
+	}
+
+	return 0;
+}
+
+DWORD WINAPI thread5(LPVOID param) {
+	HANDLE semaforoThbomba = CreateSemaphore(NULL, 1, 1, TEXT("semaforoThBomba"));
+	msg * pinfo;
+	msg info;
+	pinfo = (msg *)param;
+	info = *pinfo;
+	ReleaseSemaphore(semaforoThbomba, 1, NULL);
+	obj * objectos = mapeamento();
+	int i;
+	for (i = 0;i < 300;i++) {
+		if (objectos[i].tipo == NULL && objectos[i].id== NULL) {
+			objectos[i].x = info.aux1;
+			objectos[i].y = info.aux2;
+			objectos[i].id = 500;
+			objectos[i].tipo = definicoes.bomba.tipo;
+			objectos[i].tamx = definicoes.bomba.tamx;
+			objectos[i].tamy = definicoes.bomba.tamy;
+			while (1){
+				objectos[i].y = objectos[i].y + 2;
+
 			}
 		}
 	}
@@ -1150,6 +1206,30 @@ int apanhatecla() {
 	return 0;
 }
 
+int randominate(int range_min, int range_max){
+	errno_t err;
+	unsigned int number;
+	err = rand_s(&number);
+	if (err != 0)
+		return -1;
+	int num = (int)((double)number / ((double)UINT_MAX + 1) * range_max + range_min);
+	return num;
+}
+
+/*
+void RangedRandDemo(int range_min, int range_max, int n){
+	// Generate random numbers in the half-closed interval  
+	// [range_min, range_max). In other words,  
+	// range_min <= random number < range_max  
+	int i;
+	for (i = 0; i < n; i++)
+	{
+		int u = (double)rand() / (RAND_MAX + 1) * (range_max - range_min)
+			+ range_min;
+		printf("  %6d\n", u);
+	}
+}
+*/
 //** no cliente -> fazer um dialog box para fazer o login
 //espera pela conecçao cliente ou clientes
 //envia dimensoes do mapa para o cliente atravez do buffer circular 2

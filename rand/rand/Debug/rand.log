@@ -1,0 +1,3 @@
+﻿  Source.cpp
+c:\users\mauri\documents\github\so2_17-18\rand\rand\source.cpp(24): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  rand.vcxproj -> C:\Users\mauri\Documents\GitHub\SO2_17-18\rand\Debug\rand.exe
