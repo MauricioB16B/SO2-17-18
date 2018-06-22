@@ -1,7 +1,6 @@
 ﻿  SourceServer2.0.cpp
-c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(122): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(130): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
-c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(135): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
-LINK : warning LNK4076: invalid incremental status file 'C:\Users\mauri\Documents\GitHub\SO2_17-18\EspaceInvadersSO2\Debug\Server2.0.ilk' (which will be deleted); linking nonincrementally
-SourceServer2.0.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(120): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(128): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(133): warning C4302: 'type cast': truncation from 'LPWSTR' to 'WORD'
+c:\users\mauri\documents\github\so2_17-18\espaceinvadersso2\server2.0\sourceserver2.0.cpp(748): warning C4101: 'info': unreferenced local variable
   Server2.0.vcxproj -> C:\Users\mauri\Documents\GitHub\SO2_17-18\EspaceInvadersSO2\Debug\Server2.0.exe

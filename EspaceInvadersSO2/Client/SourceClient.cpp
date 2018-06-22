@@ -26,6 +26,7 @@ typedef struct {
 	TCHAR aux8[1024];
 }msg;
 typedef struct obj {
+	int lasthit;
 	int vida;
 	int id;
 	int tipo;

@@ -12,19 +12,6 @@ void SimpleRandDemo(int n)
 		printf("  %6d\n", rand());
 }
 
-void RangedRandDemo(int range_min, int range_max, int n)
-{
-	// Generate random numbers in the half-closed interval  
-	// [range_min, range_max). In other words,  
-	// range_min <= random number < range_max  
-	int i;
-	for (i = 0; i < n; i++)
-	{
-		int u = (double)rand() / (RAND_MAX + 1) * (range_max - range_min)
-			+ range_min;
-		printf("  %6d\n", u);
-	}
-}
 
 int randominate(int range_min, int range_max) {
 	errno_t err;
@@ -34,6 +21,25 @@ int randominate(int range_min, int range_max) {
 		return -1;
 	int num = (int)((double)number / ((double)UINT_MAX + 1) * range_max + range_min);
 	return num;
+}
+
+int random_number(int min_num, int max_num)
+{
+	int result = 0, low_num = 0, hi_num = 0;
+
+	if (min_num < max_num)
+	{
+		low_num = min_num;
+		hi_num = max_num + 1; // include max_num in output
+	}
+	else {
+		low_num = max_num + 1; // include max_num in output
+		hi_num = min_num;
+	}
+
+	srand(time(NULL));
+	result = (rand() % (hi_num - low_num)) + low_num;
+	return result;
 }
 
 int main(void)
@@ -51,7 +57,7 @@ int main(void)
 	{
 
 
-		printf_s("%d\n", randominate(0, 100));
+		printf_s("%d\n", random_number(0,100));
 		Sleep(500);
 	}
 }

@@ -7,6 +7,7 @@
 #include <tchar.h>
 
 typedef struct obj {
+	int lasthit;
 	int vida;
 	int id;
 	int tipo;

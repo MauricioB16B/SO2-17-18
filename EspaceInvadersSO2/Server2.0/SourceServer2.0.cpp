@@ -1,4 +1,3 @@
-#define _CRT_RAND_S  
 #include <windows.h>  
 #include <stdlib.h>  
 #include <string.h>  
@@ -107,7 +106,6 @@ int move(msg data, obj * objectos);
 int buffercircular();
 int buffercircular2(msg dados);
 int apanhatecla();
-int randominate(int range_min, int range_max);
 DWORD WINAPI thread1(LPVOID param);
 DWORD WINAPI thread2(LPVOID param);
 DWORD WINAPI thread3(LPVOID param);
@@ -739,7 +737,7 @@ DWORD WINAPI thread1(LPVOID param) {
 
 DWORD WINAPI thread2(LPVOID param) {
 	HANDLE semaforoThNave = CreateSemaphore(NULL, 0, 1, TEXT("semaforoThreadNave"));
-	HANDLE semaforoThbomba = CreateSemaphore(NULL, 1, 1, TEXT("semaforoThBomba"));
+	//HANDLE semaforoThbomba = CreateSemaphore(NULL, 1, 1, TEXT("semaforoThBomba"));
 	obj * pobj;
 	obj esteobjecto;
 	pobj = (obj *)param;
@@ -804,15 +802,15 @@ DWORD WINAPI thread2(LPVOID param) {
 
 
 					
-					if (randominate(1,10000) == 5500) {
-						info.aux1 = mapa[i].x + (mapa[i].tamx/2);
+					/*if ((1, 10000) == 5500) {
+						info.aux1 = mapa[i].x + (mapa[i].tamx / 2);
 						info.aux2 = mapa[i].y + mapa[i].tamy;
 						WaitForSingleObject(semaforoThbomba, INFINITE);
 						CreateThread(NULL, 0, thread5, (LPVOID)&info, 0, NULL);
 						WaitForSingleObject(semaforoThbomba, INFINITE);
 						ReleaseSemaphore(semaforoThbomba, 1, NULL);
 					}
-				}
+				*/}
 		}
 		nnavesprontas++;
 		ReleaseMutex(mutex);
@@ -960,7 +958,7 @@ DWORD WINAPI thread5(LPVOID param) {
 			objectos[i].tamy = definicoes.bomba.tamy;
 			while (1){
 				objectos[i].y = objectos[i].y + 2;
-
+				Sleep(500);
 			}
 		}
 	}
@@ -988,7 +986,7 @@ int criamapa(obj * objectos) {
 				i = definicoes.maxx;
 			indice++;
 		}
-		if (objectos[0].y + definicoes.navep.tamy >= (definicoes.maxy *0.25) || indice >= 200) {
+		if (objectos[2].y + definicoes.navep.tamy >= (definicoes.maxy *0.25) || indice >= 200) {
 			ReleaseMutex(mutex);
 			return 0;
 		}
@@ -1009,7 +1007,7 @@ int criamapa(obj * objectos) {
 				i = definicoes.maxx;
 			indice++;
 		}
-		if (objectos[0].y + definicoes.naveg.tamy >= (definicoes.maxy *0.25) || indice >= 200) {
+		if (objectos[2].y + definicoes.naveg.tamy >= (definicoes.maxy *0.25) || indice >= 200) {
 			ReleaseMutex(mutex);
 			return 0;
 		}
@@ -1206,6 +1204,7 @@ int apanhatecla() {
 	return 0;
 }
 
+/*
 int randominate(int range_min, int range_max){
 	errno_t err;
 	unsigned int number;

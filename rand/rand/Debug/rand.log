@@ -1,3 +1,4 @@
-﻿  Source.cpp
-c:\users\mauri\documents\github\so2_17-18\rand\rand\source.cpp(24): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+﻿cl : Command line warning D9028: minimal rebuild failure, reverting to normal build
+  Source.cpp
+c:\users\mauri\documents\github\so2_17-18\rand\rand\source.cpp(40): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   rand.vcxproj -> C:\Users\mauri\Documents\GitHub\SO2_17-18\rand\Debug\rand.exe
